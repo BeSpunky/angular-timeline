@@ -7,7 +7,7 @@
       "projectType": "library",
       "root": "projects/bespunky/angular-timeline",
       "sourceRoot": "projects/bespunky/angular-timeline/src",
-      "prefix": "lib",
+      "prefix": "bs",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
