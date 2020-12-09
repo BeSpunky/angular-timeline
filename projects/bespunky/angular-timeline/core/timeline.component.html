@@ -1,9 +1,9 @@
 <div class="timeline">
-    <ng-template *timelineRange #yearSpace   from="2000" to="2020" jumps="2">
-    <ng-template *timelineRange #monthSpace  from="1"    to="12">
-    <ng-template *timelineRange #daySpace    from="1"    [to]="daysInMonth">
-    <ng-template *timelineRange #hourSpace   from="0"    to="23">
-    <ng-template *timelineRange #minuteSpace from="0"    to="59">
+    <ng-template *timelineRange #yearSpace   [from]="2000" [to]="2020" [jumps]="2">
+    <ng-template *timelineRange #monthSpace  [from]="1"    [to]="12">
+    <ng-template *timelineRange #daySpace    [from]="1"    [to]="30">
+    <ng-template *timelineRange #hourSpace   [from]="0"    [to]="23">
+    <ng-template *timelineRange #minuteSpace [from]="0"    [to]="59">
 
     </ng-template>
     </ng-template>
