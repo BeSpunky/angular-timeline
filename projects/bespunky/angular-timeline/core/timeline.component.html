@@ -1,7 +1,13 @@
 <div class="timeline">
-    <!-- <bs-timeline-line class="timeline-layer"><ng-content select="[bsTimelineLine]"></ng-content></bs-timeline-line> -->
+    <ng-template *timelineRange #yearSpace   from="2000" to="2020" jumps="2">
+    <ng-template *timelineRange #monthSpace  from="1"    to="12">
+    <ng-template *timelineRange #daySpace    from="1"    [to]="daysInMonth">
+    <ng-template *timelineRange #hourSpace   from="0"    to="23">
+    <ng-template *timelineRange #minuteSpace from="0"    to="59">
 
-    <!-- <bs-timeline-space class="timeline-layer" [ticks]="2">aaaa
-        <bs-timeline-space [ticks]="5">c</bs-timeline-space>
-    </bs-timeline-space> -->
+    </ng-template>
+    </ng-template>
+    </ng-template>
+    </ng-template>
+    </ng-template>
 </div>

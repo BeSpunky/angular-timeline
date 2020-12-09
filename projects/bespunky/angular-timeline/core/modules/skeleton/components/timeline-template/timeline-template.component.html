@@ -1,0 +1,9 @@
+<ng-template #space>
+    <div class="timeline-space">
+        <ng-content></ng-content>
+    </div>
+</ng-template>
+
+<ng-container *ngFor="let tick of ticks"
+              [ngTemplateOutlet]="space"
+></ng-container>
