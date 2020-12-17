@@ -1,9 +1,0 @@
-.timeline-ticks {
-    display: flex;
-    position: relative;
-}
-
-.timeline-ticks > bs-timeline-default-tick {
-    width: 100%;
-    flex : 1;
-}

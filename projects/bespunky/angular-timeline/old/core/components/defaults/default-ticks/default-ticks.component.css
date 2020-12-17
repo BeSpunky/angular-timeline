@@ -1,7 +1,0 @@
-.timeline-ticks {
-    display: flex;
-}
-
-.timeline-ticks > bs-timeline-default-tick {
-    flex: 1;
-}
