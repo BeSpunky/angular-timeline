@@ -1,7 +1,7 @@
-import { AfterViewInit, Directive, Input, Optional, TemplateRef, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Directive, Input, Optional, SkipSelf, TemplateRef, ViewContainerRef } from '@angular/core';
 
 @Directive({
-    selector: '[timelineRange]'
+    selector: 'ng-template[timelineRange]'
 })
 export class TimelineRangeDirective implements AfterViewInit
 {
@@ -10,7 +10,7 @@ export class TimelineRangeDirective implements AfterViewInit
     @Input() public jumps: number = 1;
 
     constructor(
-        @Optional() public  parent         : TimelineRangeDirective,
+        @Optional() @SkipSelf() public  parent         : TimelineRangeDirective,
                     private view           : ViewContainerRef,
                     private template       : TemplateRef<any>
     ) { }
