@@ -1,25 +1,27 @@
-import { AfterViewInit, Directive, Input, Optional, SkipSelf, TemplateRef, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Directive, EmbeddedViewRef, Input, OnChanges, OnInit, Optional, SkipSelf, TemplateRef, ViewChildren, ViewContainerRef } from '@angular/core';
 
 @Directive({
-    selector: 'ng-template[timelineRange]'
+    selector: '[timelineRange]'
 })
-export class TimelineRangeDirective implements AfterViewInit
+export class TimelineRangeDirective
 {
-    @Input() public from : number = 0;
-    @Input() public to   : number = 10;
-    @Input() public jumps: number = 1;
+    public id     : string = '';
+    public from   : number = 0;
+    public to     : number = 10;
+    public jumps  : number = 1;
+    public minZoom: number = 0;
+    public maxZoom: number = 100;
 
     constructor(
-        @Optional() @SkipSelf() public  parent         : TimelineRangeDirective,
-                    private view           : ViewContainerRef,
-                    private template       : TemplateRef<any>
+        public template: TemplateRef<any>
     ) { }
 
-    ngAfterViewInit()
-    {
-        for (let tick = this.from; tick <= this.to; tick += this.jumps)
-        {
-            this.view.createEmbeddedView(this.template);
-        }
-    }
+    @Input() public set timelineRange       (value: any   ) { this.id = value; }
+
+    @Input() public set timelineRangeFrom   (value: number) { this.from  = value; }
+    @Input() public set timelineRangeTo     (value: number) { this.to    = value; }
+    @Input() public set timelineRangeJumps  (value: number) { this.jumps = value; }
+
+    @Input() public set timelineRangeMinZoom(value: number) { this.minZoom = value; }
+    @Input() public set timelineRangeMaxZoom(value: number) { this.maxZoom = value; }
 }
