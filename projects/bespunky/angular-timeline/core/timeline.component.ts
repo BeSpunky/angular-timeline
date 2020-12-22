@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component,  ContentChildren,  ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TimelineRangeDirective } from './modules/skeleton/directives/timeline-range.directive';
+import { TimelineTicksDefinitionDirective } from './modules/skeleton/directives/timeline-ticks-definition.directive';
 
 export interface TimelinePeriod
 {
@@ -33,10 +33,10 @@ export class TimelineComponent extends Destroyable implements AfterViewInit
 {
     @Input() public zoom: number = 0;
 
-    @ContentChildren(TimelineRangeDirective) public rangeChildren!: QueryList<TimelineRangeDirective>;
+    @ContentChildren(TimelineTicksDefinitionDirective) public rangeChildren!: QueryList<TimelineTicksDefinitionDirective>;
 
-    private _ranges!: TimelineRangeDirective[];
-    private _inView!: TimelineRangeDirective[];
+    private _ranges!: TimelineTicksDefinitionDirective[];
+    private _inView!: TimelineTicksDefinitionDirective[];
 
     constructor(element: ElementRef, private changes: ChangeDetectorRef)
     {
@@ -51,7 +51,7 @@ export class TimelineComponent extends Destroyable implements AfterViewInit
         this.changes.detectChanges();
     }
 
-    public initRanges(ranges: TimelineRangeDirective[]): void
+    public initRanges(ranges: TimelineTicksDefinitionDirective[]): void
     {
         this._ranges = ranges;
     }
@@ -61,12 +61,12 @@ export class TimelineComponent extends Destroyable implements AfterViewInit
         this._inView = this.ranges.filter(range => range.minZoom <= this.zoom && this.zoom <= range.maxZoom);
     }
 
-    public get ranges(): TimelineRangeDirective[]
+    public get ranges(): TimelineTicksDefinitionDirective[]
     {
         return this._ranges;
     }
 
-    public get inView(): TimelineRangeDirective[]
+    public get inView(): TimelineTicksDefinitionDirective[]
     {
         return this._inView;
     }

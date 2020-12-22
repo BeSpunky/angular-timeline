@@ -1,11 +1,11 @@
 import { NgModule     } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { TimelineRangeDirective } from './directives/timeline-range.directive';
+import { TimelineTicksDefinitionDirective } from './directives/timeline-ticks-definition.directive';
 
 @NgModule({
     imports     : [CommonModule],
-    declarations: [TimelineRangeDirective],
-    exports     : [TimelineRangeDirective]
+    declarations: [TimelineTicksDefinitionDirective],
+    exports     : [TimelineTicksDefinitionDirective]
 })
 export class TimelineSkeletonModule { }

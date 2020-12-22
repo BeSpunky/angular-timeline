@@ -6,4 +6,4 @@ export * from './timeline.module';
 export * from './timeline.component';
 
 export * from './modules/skeleton/timeline-skeleton.module';
-export * from './modules/skeleton/directives/timeline-range.directive';
+export * from './modules/skeleton/directives/timeline-ticks-definition.directive';

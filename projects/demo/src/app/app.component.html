@@ -1,7 +1,7 @@
 <bs-timeline>
-    <div *timelineRange="'years'; from: 2000; to: 2020; jumps: 2; minZoom: 0; maxZoom: 40" #yearSpace>year</div>
-    <div *timelineRange="'months'; from: 1; to: 12; minZoom: 10; maxZoom: 50"  #monthSpace>month</div>
-    <div *timelineRange="'days'; from: 1; to: 30; minZoom: 20; maxZoom: 60"    #daySpace>day</div>
-    <div *timelineRange="'hours'; from: 0; to: 23; minZoom: 30; maxZoom: 70"   #hourSpace>hour</div>
-    <div *timelineRange="'minutes'; from: 0; to: 59; minZoom: 40; maxZoom: 80" #minuteSpace>minute</div>
+    <div *timelineTicksDef="'years'; from: 2000; to: 2020; jumps: 2; minZoom: 0; maxZoom: 40" #yearSpace>year</div>
+    <div *timelineTicksDef="'months'; from: 1; to: 12; minZoom: 10; maxZoom: 50"  #monthSpace>month</div>
+    <div *timelineTicksDef="'days'; from: 1; to: 30; minZoom: 20; maxZoom: 60"    #daySpace>day</div>
+    <div *timelineTicksDef="'hours'; from: 0; to: 23; minZoom: 30; maxZoom: 70"   #hourSpace>hour</div>
+    <div *timelineTicksDef="'minutes'; from: 0; to: 59; minZoom: 40; maxZoom: 80" #minuteSpace>minute</div>
 </bs-timeline>
