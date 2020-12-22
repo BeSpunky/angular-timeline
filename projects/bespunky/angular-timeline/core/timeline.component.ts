@@ -1,26 +1,36 @@
 import { AfterViewInit, ChangeDetectorRef, Component,  ContentChildren,  ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TimelineTicksDefinitionDirective } from './modules/skeleton/directives/timeline-ticks-definition.directive';
+import { TimelineRangeDefinitionDirective } from '../../../../dist/bespunky/angular-timeline/core/modules/skeleton/directives/timeline-range-definition.directive';
+import { TimelineTicksDefinition, TimelineTicksDefinitionDirective } from './modules/skeleton/directives/timeline-ticks-definition.directive';
 
-export interface TimelinePeriod
+// export interface TimelinePeriod
+// {
+//     id?       : string;
+//     ticks     : number;
+//     minZoom?  : number;
+//     tickLabel?: string | ((index: number) => string);
+// }
+
+// const x: TimelinePeriod[] = [
+//     { id: 'centuries'   , ticks: 100  },
+//     { id: 'decades'     , ticks: 10   },
+//     { id: 'years'       , ticks: 10   },
+//     { id: 'months'      , ticks: 12   },
+//     { id: 'days'        , ticks: 30   },
+//     { id: 'hours'       , ticks: 24   },
+//     { id: 'minutes'     , ticks: 60   },
+//     { id: 'seconds'     , ticks: 60   },
+//     { id: 'milliseconds', ticks: 1000 },
+// ];
+
+export class TimelineTick
 {
-    id?       : string;
-    ticks     : number;
-    minZoom?  : number;
-    tickLabel?: string | ((index: number) => string);
+    constructor(
+        public definition: TimelineTicksDefinition,
+        public parent?   : TimelineTick | null,
+        public child?    : TimelineTick | null
+    ) { }
 }
-
-const x: TimelinePeriod[] = [
-    { id: 'centuries'   , ticks: 100  },
-    { id: 'decades'     , ticks: 10   },
-    { id: 'years'       , ticks: 10   },
-    { id: 'months'      , ticks: 12   },
-    { id: 'days'        , ticks: 30   },
-    { id: 'hours'       , ticks: 24   },
-    { id: 'minutes'     , ticks: 60   },
-    { id: 'seconds'     , ticks: 60   },
-    { id: 'milliseconds', ticks: 1000 },
-];
 
 @Component({
     selector     : 'bs-timeline',
@@ -33,41 +43,32 @@ export class TimelineComponent extends Destroyable implements AfterViewInit
 {
     @Input() public zoom: number = 0;
 
-    @ContentChildren(TimelineTicksDefinitionDirective) public rangeChildren!: QueryList<TimelineTicksDefinitionDirective>;
+    @ContentChildren(TimelineTicksDefinitionDirective) public tickDefinitions!: QueryList<TimelineTicksDefinitionDirective>;
 
-    private _ranges!: TimelineTicksDefinitionDirective[];
-    private _inView!: TimelineTicksDefinitionDirective[];
+    public topTick!: TimelineTick;
 
-    constructor(element: ElementRef, private changes: ChangeDetectorRef)
+    constructor(private changes: ChangeDetectorRef)
     {
         super();
     }
 
     ngAfterViewInit()
     {
-        this.initRanges(this.rangeChildren.toArray());
-        this.updateView();
-        
+        this.initNestedPeriodDefinitions();
+
         this.changes.detectChanges();
     }
 
-    public initRanges(ranges: TimelineTicksDefinitionDirective[]): void
+    private initNestedPeriodDefinitions(): void
     {
-        this._ranges = ranges;
-    }
+        const ticks = this.tickDefinitions.map(def => new TimelineTick(def));
 
-    public updateView(): void
-    {
-        this._inView = this.ranges.filter(range => range.minZoom <= this.zoom && this.zoom <= range.maxZoom);
-    }
+        ticks.forEach((tick, index) =>
+        {
+            tick.parent = index === 0                  ? null : ticks[index - 1];
+            tick.child  = index === ticks.length - 1 ? null : ticks[index + 1];
+        });
 
-    public get ranges(): TimelineTicksDefinitionDirective[]
-    {
-        return this._ranges;
-    }
-
-    public get inView(): TimelineTicksDefinitionDirective[]
-    {
-        return this._inView;
+        this.topTick = ticks[0];
     }
 }

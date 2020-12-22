@@ -1,9 +1,21 @@
 import { AfterViewInit, Directive, EmbeddedViewRef, Input, OnChanges, OnInit, Optional, SkipSelf, TemplateRef, ViewChildren, ViewContainerRef } from '@angular/core';
 
+export interface TimelineTicksDefinition
+{
+    id     : string;
+    from   : number;
+    to     : number;
+    jumps  : number;
+    minZoom: number;
+    maxZoom: number;
+
+    template: TemplateRef<any>;
+}
+
 @Directive({
     selector: '[timelineTicksDef]'
 })
-export class TimelineTicksDefinitionDirective
+export class TimelineTicksDefinitionDirective implements TimelineTicksDefinition
 {
     public id     : string = '';
     public from   : number = 0;
