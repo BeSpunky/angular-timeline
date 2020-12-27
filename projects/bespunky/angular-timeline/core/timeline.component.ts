@@ -1,7 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, Component,  ContentChildren,  ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component,  ContentChildren, EventEmitter, ElementRef, Input, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TimelineRangeDefinitionDirective } from '../../../../dist/bespunky/angular-timeline/core/modules/skeleton/directives/timeline-range-definition.directive';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TimelineTicksDefinition, TimelineTicksDefinitionDirective } from './modules/skeleton/directives/timeline-ticks-definition.directive';
+import { TimelineStateService } from './services/timeline-state.service';
 
 // export interface TimelinePeriod
 // {
@@ -27,8 +29,8 @@ export class TimelineTick
 {
     constructor(
         public definition: TimelineTicksDefinition,
-        public parent?   : TimelineTick | null,
-        public child?    : TimelineTick | null
+        public parent?   : TimelineTick,
+        public child?    : TimelineTick
     ) { }
 }
 
@@ -37,17 +39,19 @@ export class TimelineTick
     templateUrl  : './timeline.component.html',
     styleUrls    : ['./timeline.component.css'],
     exportAs     : 'timeline',
+    providers    : [TimelineStateService],
     encapsulation: ViewEncapsulation.None
 })
 export class TimelineComponent extends Destroyable implements AfterViewInit
 {
-    @Input() public zoom: number = 0;
-
     @ContentChildren(TimelineTicksDefinitionDirective) public tickDefinitions!: QueryList<TimelineTicksDefinitionDirective>;
 
     public topTick!: TimelineTick;
 
-    constructor(private changes: ChangeDetectorRef)
+    //temp
+    public zoom: number = 0;
+    
+    constructor(private changes: ChangeDetectorRef, public state: TimelineStateService)
     {
         super();
     }
@@ -65,8 +69,8 @@ export class TimelineComponent extends Destroyable implements AfterViewInit
 
         ticks.forEach((tick, index) =>
         {
-            tick.parent = index === 0                  ? null : ticks[index - 1];
-            tick.child  = index === ticks.length - 1 ? null : ticks[index + 1];
+            if (index > 0               ) tick.parent = ticks[index - 1];
+            if (index < ticks.length - 1) tick.child  = ticks[index + 1];
         });
 
         this.topTick = ticks[0];

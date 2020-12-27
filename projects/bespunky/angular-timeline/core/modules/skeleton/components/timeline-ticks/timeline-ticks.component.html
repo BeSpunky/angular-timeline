@@ -1,0 +1,8 @@
+<ng-container *ngIf="tick">
+    <ng-container *ngFor="let item of items">
+        <ng-container *ngIf="shouldRender">
+            <ng-container *ngTemplateOutlet="tick.definition.template"></ng-container>
+        </ng-container>
+        <bs-timeline-ticks *ngIf="tickMatchsZoom(state.zoom.value, tick?.child)" [tick]="tick.child"></bs-timeline-ticks>
+    </ng-container>
+</ng-container>

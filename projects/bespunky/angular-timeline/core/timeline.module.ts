@@ -8,7 +8,8 @@ import { FormsModule } from '@angular/forms';
 @NgModule({
     imports: [
         CommonModule,
-        TimelineSkeletonModule, FormsModule
+        TimelineSkeletonModule,
+        FormsModule
     ],
     declarations: [TimelineComponent],
     exports     : [TimelineComponent, TimelineSkeletonModule]
