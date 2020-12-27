@@ -20,10 +20,7 @@ export class TimelineTicksComponent extends Destroyable implements AfterViewInit
     {
         super();
 
-        this.subscribe(this.state.zoom.pipe(
-            debounceTime(300),
-            distinctUntilChanged()
-        ), this.onZoomChanged.bind(this));
+        this.subscribe(this.state.debouncedZoom(), this.onZoomChanged.bind(this));
     }
 
     ngAfterViewInit(): void
