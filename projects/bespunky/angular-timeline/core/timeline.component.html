@@ -1,5 +1,16 @@
-<input type="range" min="1" max="80" value="0" class="slider" id="zoom" [(ngModel)]="zoom" (ngModelChange)="state.zoom.next($event)" />
+<svg bsTimelineDef class="timeline" height="400" width="800" #definition="timelineDef">
+    <line *timelineTicksDef="'years'; from: 2000; to: 2005; minZoom: 0; maxZoom: 30" x1="0" y1="0" x2="0" y2="100%" stroke-width="1" stroke="black"></line>
+    <line *timelineTicksDef="'months'; from: 1; to: 12; minZoom: 10; maxZoom: 40"  x1="100%" y1="0" x2="0" y2="100%" stroke-width="3" stroke="green"></line>
+    <line *timelineTicksDef="'days'; from: 1; to: 30; minZoom: 20; maxZoom: 50"></line>
+    <line *timelineTicksDef="'hours'; from: 0; to: 23; minZoom: 30; maxZoom: 60"></line>
+    <line *timelineTicksDef="'minutes'; from: 0; to: 59; minZoom: 50; maxZoom: 80"></line>
+</svg>
+<!-- <div bsTimelineDef class="timeline" height="400" width="800" #definition="timelineDef"> -->
+    <!-- <div *timelineTicksDef="'years'; from: 2000; to: 2005; minZoom: 0; maxZoom: 40"></div> -->
+    <!-- <div *timelineTicksDef="'months'; from: 1; to: 12; minZoom: 10; maxZoom: 40"></div> -->
+    <!-- <div *timelineTicksDef="'days'; from: 1; to: 30; minZoom: 20; maxZoom: 50"></div> -->
+    <!-- <div *timelineTicksDef="'hours'; from: 0; to: 23; minZoom: 30; maxZoom: 60"></div> -->
+    <!-- <div *timelineTicksDef="'minutes'; from: 0; to: 59; minZoom: 50; maxZoom: 80"></div> -->
 
-<div class="timeline">
-    <bs-timeline-ticks [tick]="topTick"></bs-timeline-ticks>
-</div>
+    <!-- <bs-timeline-ticks [tick]="definition.topTick"></bs-timeline-ticks> -->
+<!-- </div> -->

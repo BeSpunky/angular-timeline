@@ -1,17 +1,15 @@
-import { NgModule     } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, NO_ERRORS_SCHEMA     } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { TimelineSkeletonModule } from './modules/skeleton/timeline-skeleton.module';
 import { TimelineComponent } from './timeline.component';
-import { FormsModule } from '@angular/forms';
+import { TimelineSkeletonModule } from './skeleton/timeline-skeleton.module';
 
 @NgModule({
     imports: [
         CommonModule,
-        TimelineSkeletonModule,
-        FormsModule
+        TimelineSkeletonModule
     ],
     declarations: [TimelineComponent],
-    exports     : [TimelineComponent, TimelineSkeletonModule]
+    exports: [TimelineComponent, TimelineSkeletonModule],
 })
 export class TimelineModule { }

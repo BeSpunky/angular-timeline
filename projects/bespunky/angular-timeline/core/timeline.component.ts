@@ -1,9 +1,6 @@
-import { AfterViewInit, ChangeDetectorRef, Component,  ContentChildren, EventEmitter, ElementRef, Input, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
-import { Destroyable } from '@bespunky/angular-zen/core';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { TimelineTicksDefinition, TimelineTicksDefinitionDirective } from './modules/skeleton/directives/timeline-ticks-definition.directive';
-import { TimelineStateService } from './services/timeline-state.service';
+import { Component,  Input,  ViewEncapsulation } from '@angular/core';
+import { TimelineStateService } from './skeleton/services/timeline-state.service';
+import { TimelineToolsService } from './skeleton/services/timeline-tools.service';
 
 // export interface TimelinePeriod
 // {
@@ -25,15 +22,6 @@ import { TimelineStateService } from './services/timeline-state.service';
 //     { id: 'milliseconds', ticks: 1000 },
 // ];
 
-export class TimelineTick
-{
-    constructor(
-        public definition: TimelineTicksDefinition,
-        public parent?   : TimelineTick,
-        public child?    : TimelineTick
-    ) { }
-}
-
 @Component({
     selector     : 'bs-timeline',
     templateUrl  : './timeline.component.html',
@@ -42,37 +30,12 @@ export class TimelineTick
     providers    : [TimelineStateService],
     encapsulation: ViewEncapsulation.None
 })
-export class TimelineComponent extends Destroyable implements AfterViewInit
+export class TimelineComponent
 {
-    @ContentChildren(TimelineTicksDefinitionDirective) public tickDefinitions!: QueryList<TimelineTicksDefinitionDirective>;
+    constructor(private state: TimelineStateService, private tools: TimelineToolsService) { }
 
-    public topTick!: TimelineTick;
-
-    //temp
-    public zoom: number = 0;
-    
-    constructor(private changes: ChangeDetectorRef, public state: TimelineStateService)
+    @Input() set zoom(value: number)
     {
-        super();
-    }
-
-    ngAfterViewInit()
-    {
-        this.initNestedPeriodDefinitions();
-
-        this.changes.detectChanges();
-    }
-
-    private initNestedPeriodDefinitions(): void
-    {
-        const ticks = this.tickDefinitions.map(def => new TimelineTick(def));
-
-        ticks.forEach((tick, index) =>
-        {
-            if (index > 0               ) tick.parent = ticks[index - 1];
-            if (index < ticks.length - 1) tick.child  = ticks[index + 1];
-        });
-
-        this.topTick = ticks[0];
+        this.state.zoom.next(value);
     }
 }

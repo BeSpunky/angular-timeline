@@ -1,10 +1,14 @@
 /*
  * Public API Surface of angular-timeline
  */
+export * from './skeleton/timeline-skeleton.module';
+
+export * from './skeleton/directives/timeline-definition.directive';
+export * from './skeleton/directives/timeline-ticks-definition.directive';
+
+export * from './skeleton/services/timeline-state.service';
+export * from './skeleton/services/timeline-tools.service';
 
 export * from './timeline.module';
 export * from './timeline.component';
 
-export * from './modules/skeleton/timeline-skeleton.module';
-export * from './modules/skeleton/directives/timeline-ticks-definition.directive';
-export * from './modules/skeleton/components/timeline-ticks/timeline-ticks.component';

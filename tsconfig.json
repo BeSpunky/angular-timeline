@@ -20,11 +20,13 @@
       "dom"
     ],
     "paths": {
-      "@bespunky/angular-timeline": [
-        "dist/bespunky/angular-timeline/bespunky-angular-timeline",
-        "dist/bespunky/angular-timeline"
-      ]
-    }
+        "@bespunky/angular-timeline": [
+          "dist/bespunky/angular-timeline"
+        ],
+        "@bespunky/angular-timeline/*": [
+          "dist/bespunky/angular-timeline/*"
+        ]
+      }
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,

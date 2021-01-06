@@ -1,10 +1,12 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { debounce, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
 @Injectable()
 export class TimelineStateService
 {
-    public zoom: BehaviorSubject<number> = new BehaviorSubject(0);
+    public zoom        : BehaviorSubject<number>          = new BehaviorSubject(0);
+    public baseTickSize: BehaviorSubject<number | string> = new BehaviorSubject('80%' as number | string);
 
     public debouncedZoom(dueTime: number = 200): Observable<number>
     {
