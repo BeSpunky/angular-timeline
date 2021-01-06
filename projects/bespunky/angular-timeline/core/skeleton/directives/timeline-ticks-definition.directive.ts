@@ -58,6 +58,7 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
     @Input() public set timelineTicksDefMinZoom(value: number) { this.minZoom.next(value); }
     @Input() public set timelineTicksDefMaxZoom(value: number) { this.maxZoom.next(value); }
 
+    // TODO: Move to tools.
     private itemsFeed(): Observable<any[]>
     {
         return merge(this.from, this.to, this.jumps).pipe(
@@ -67,7 +68,8 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
 
     private shouldRenderFeed(): Observable<boolean>
     {
-        return merge(this.state.debouncedZoom(), this.minZoom, this.maxZoom).pipe(
+        return merge(this.state.zoom, this.minZoom, this.maxZoom).pipe(
+        // return merge(this.state.debouncedZoom(180), this.minZoom, this.maxZoom).pipe(
             map(zoom => this.tickMatchsZoom(zoom))
         );
     }
@@ -77,6 +79,7 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
         return combineLatest([this.items, this.shouldRender]);
     }
 
+    // TODO: Move to tools
     public tickMatchsZoom(zoom: number): boolean
     {
         return this.minZoom.value <= zoom && zoom <= this.maxZoom.value;
@@ -89,19 +92,25 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
 
         if (!shouldRender) return;
         
-        for (let item of items)
+        items.forEach((item, index) =>
         {
-            const context = this.createViewContext(item);
+            const context = this.createViewContext(item, index);
 
             this.view.createEmbeddedView(this.template, context);
-        }
+        });
     }
 
-    private createViewContext(value: any): any
+    private createViewContext(value: any, index: number): any
     {
-        return {
+        const context = {
             state: this.state,
-            value
+            value,
+            index
+        };
+
+        return {
+            $implicit: context,
+            ...context
         };
     }
 }

@@ -8,6 +8,5 @@ import { TimelineDefinitionDirective } from './directives/timeline-definition.di
     imports     : [CommonModule],
     exports     : [TimelineTicksDefinitionDirective, TimelineDefinitionDirective],
     declarations: [TimelineTicksDefinitionDirective, TimelineDefinitionDirective],
-    schemas     : [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TimelineSkeletonModule { }

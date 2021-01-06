@@ -10,6 +10,6 @@ import { TimelineSkeletonModule } from './skeleton/timeline-skeleton.module';
         TimelineSkeletonModule
     ],
     declarations: [TimelineComponent],
-    exports: [TimelineComponent, TimelineSkeletonModule],
+    exports     : [TimelineComponent, TimelineSkeletonModule],
 })
 export class TimelineModule { }
