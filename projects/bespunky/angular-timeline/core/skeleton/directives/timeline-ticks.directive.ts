@@ -1,12 +1,12 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { BehaviorSubject, combineLatest, merge } from 'rxjs';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { TimelineStateService } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
+// import { TimelineDirective } from './timeline.directive';
 
-export interface TimelineTicksDefinition
+export interface TimelineTicks
 {
     id     : BehaviorSubject<string>;
     from   : BehaviorSubject<number>;
@@ -19,10 +19,10 @@ export interface TimelineTicksDefinition
 }
 
 @Directive({
-    selector: '[timelineTicksDef]',
-    exportAs: 'timelineTicksDef'
+    selector: '[timelineTicks]',
+    exportAs: 'timelineTicks'
 })
-export class TimelineTicksDefinitionDirective extends Destroyable implements TimelineTicksDefinition
+export class TimelineTicksDirective extends Destroyable implements TimelineTicks
 {
     public id     : BehaviorSubject<string> = new BehaviorSubject('');
     public from   : BehaviorSubject<number> = new BehaviorSubject(0);
@@ -35,6 +35,7 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
     public shouldRender!: Observable<boolean>;
 
     constructor(
+        // public  timeline: TimelineDirective,
         public  template: TemplateRef<any>,
         private view    : ViewContainerRef,
         private state   : TimelineStateService,
@@ -42,21 +43,21 @@ export class TimelineTicksDefinitionDirective extends Destroyable implements Tim
     )
     {
         super();
-
+        
         this.items        = this.itemsFeed();
         this.shouldRender = this.shouldRenderFeed();
 
         this.subscribe(this.renderFeed(), this.renderTicks.bind(this));
     }
 
-    @Input() public set timelineTicksDef       (value: string) { this.id.next(value); }
+    @Input() public set timelineTicks       (value: string) { this.id.next(value); }
 
-    @Input() public set timelineTicksDefFrom   (value: number) { this.from .next(value); }
-    @Input() public set timelineTicksDefTo     (value: number) { this.to   .next(value); }
-    @Input() public set timelineTicksDefJumps  (value: number) { this.jumps.next(value); }
+    @Input() public set timelineTicksFrom   (value: number) { this.from .next(value); }
+    @Input() public set timelineTicksTo     (value: number) { this.to   .next(value); }
+    @Input() public set timelineTicksJumps  (value: number) { this.jumps.next(value); }
 
-    @Input() public set timelineTicksDefMinZoom(value: number) { this.minZoom.next(value); }
-    @Input() public set timelineTicksDefMaxZoom(value: number) { this.maxZoom.next(value); }
+    @Input() public set timelineTicksMinZoom(value: number) { this.minZoom.next(value); }
+    @Input() public set timelineTicksMaxZoom(value: number) { this.maxZoom.next(value); }
 
     // TODO: Move to tools.
     private itemsFeed(): Observable<any[]>

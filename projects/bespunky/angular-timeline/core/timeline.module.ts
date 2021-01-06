@@ -1,7 +1,7 @@
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, NO_ERRORS_SCHEMA     } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule     } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { TimelineComponent } from './timeline.component';
+import { TimelineComponent      } from './timeline.component';
 import { TimelineSkeletonModule } from './skeleton/timeline-skeleton.module';
 
 @NgModule({
@@ -10,6 +10,7 @@ import { TimelineSkeletonModule } from './skeleton/timeline-skeleton.module';
         TimelineSkeletonModule
     ],
     declarations: [TimelineComponent],
-    exports     : [TimelineComponent, TimelineSkeletonModule],
+    exports: [TimelineComponent, TimelineSkeletonModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TimelineModule { }

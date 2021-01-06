@@ -3,8 +3,8 @@
  */
 export * from './skeleton/timeline-skeleton.module';
 
-export * from './skeleton/directives/timeline-definition.directive';
-export * from './skeleton/directives/timeline-ticks-definition.directive';
+export * from './skeleton/directives/timeline.directive';
+export * from './skeleton/directives/timeline-ticks.directive';
 
 export * from './skeleton/services/timeline-state.service';
 export * from './skeleton/services/timeline-tools.service';

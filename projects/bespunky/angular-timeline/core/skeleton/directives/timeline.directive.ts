@@ -1,24 +1,24 @@
 import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList, ViewEncapsulation } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
 import { TimelineStateService } from '../services/timeline-state.service';
-import { TimelineTicksDefinition, TimelineTicksDefinitionDirective } from './timeline-ticks-definition.directive';
+import { TimelineTicks, TimelineTicksDirective } from './timeline-ticks.directive';
 
 export class TimelineTick
 {
     constructor(
-        public definition: TimelineTicksDefinition,
+        public definition: TimelineTicks,
         public parent?   : TimelineTick,
         public child?    : TimelineTick
     ) { }
 }
 
 @Directive({
-    selector : '[bsTimelineDef]',
-    exportAs : 'timelineDef'
+    selector : '[timeline]',
+    exportAs : 'timeline'
 })
-export class TimelineDefinitionDirective extends Destroyable implements AfterViewInit
+export class TimelineDirective extends Destroyable implements AfterViewInit
 {
-    @ContentChildren(TimelineTicksDefinitionDirective) public tickDefinitions!: QueryList<TimelineTicksDefinitionDirective>;
+    @ContentChildren(TimelineTicksDirective) public tickDefinitions!: QueryList<TimelineTicksDirective>;
 
     public topTick!: TimelineTick;
     
