@@ -1,16 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TimelineStateService } from '../services/timeline-state.service';
+import { TimelineRenderer, TimelineRendererService } from '../services/timeline-renderer.service';
+import { TimelineState, TimelineStateService } from '../services/timeline-state.service';
 import { TimelineTicks, TimelineTicksDirective } from './timeline-ticks.directive';
-
-export class TimelineTick
-{
-    constructor(
-        public definition: TimelineTicks,
-        public parent?   : TimelineTick,
-        public child?    : TimelineTick
-    ) { }
-}
 
 @Directive({
     selector : '[timeline]',
@@ -18,33 +10,30 @@ export class TimelineTick
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
-    @ContentChildren(TimelineTicksDirective) public tickDefinitions!: QueryList<TimelineTicksDirective>;
-
-    public topTick!: TimelineTick;
+    @ContentChildren(TimelineTicksDirective) public tickDefinitions!: QueryList<TimelineTicks>;
     
-    constructor(private changes: ChangeDetectorRef, public state: TimelineStateService)
+    constructor(
+        public  state   : TimelineState,
+        private renderer: TimelineRenderer
+    )
     {
         super();
     }
 
     ngAfterViewInit()
     {
-        this.initNestedPeriodDefinitions();
-
-        this.changes.detectChanges();
+        setTimeout(() => this.tickDefinitions.forEach((ticks, index) => this.observeTick(ticks, index)), 0);
     }
 
-    private initNestedPeriodDefinitions(): void
+    private observeTick(ticks: TimelineTicks, tickLevel: number): void
     {
-        const ticks = this.tickDefinitions.map(def => new TimelineTick(def));
+        this.subscribe(ticks.render, ([items, shouldRender]) => this.updateTicks(ticks, tickLevel, items, shouldRender));
+    }
 
-        ticks.forEach((tick, index) =>
-        {
-            if (index > 0               ) tick.parent = ticks[index - 1];
-            if (index < ticks.length - 1) tick.child  = ticks[index + 1];
-        });
-
-        this.topTick = ticks[0];
+    private updateTicks(ticks: TimelineTicks, tickLevel: number, items: any[], shouldRender: boolean): void
+    {
+        shouldRender ? this.renderer.renderTicks(ticks, tickLevel, items) 
+                     : this.renderer.unrenderTicks(tickLevel);
     }
 
     /** The width of the top level tick in zero-zoom mode. */

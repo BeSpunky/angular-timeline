@@ -1,12 +1,32 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { ClassProvider, Injectable, ViewRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounce, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+export interface CreatedView
+{
+    item   : any;
+    index  : number;
+    context: any;
+    view   : ViewRef;
+}
+    
+export abstract class TimelineState
+{
+    abstract zoom        : BehaviorSubject<number>;
+    abstract baseTickSize: BehaviorSubject<number | string>;
+
+    abstract ticksInView: { [tickLevel: number]: CreatedView[] };
+
+    abstract debouncedZoom(dueTime?: number): Observable<number>;
+}
 
 @Injectable()
-export class TimelineStateService
+export class TimelineStateService extends TimelineState
 {
-    public zoom        : BehaviorSubject<number>          = new BehaviorSubject(0);
-    public baseTickSize: BehaviorSubject<number | string> = new BehaviorSubject('80%' as number | string);
+    public readonly zoom        : BehaviorSubject<number>          = new BehaviorSubject(0);
+    public readonly baseTickSize: BehaviorSubject<number | string> = new BehaviorSubject('80%' as number | string);
+
+    public readonly ticksInView: { [tickLevel: number]: CreatedView[] } = { };
 
     public debouncedZoom(dueTime: number = 200): Observable<number>
     {
@@ -16,3 +36,8 @@ export class TimelineStateService
         );
     }
 }
+
+export const TimelineStateProvider: ClassProvider = {
+    provide : TimelineState,
+    useClass: TimelineStateService
+};
