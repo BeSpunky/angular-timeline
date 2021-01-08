@@ -1,11 +1,10 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { Destroyable } from '@bespunky/angular-zen/core';
 import { Observable, BehaviorSubject, combineLatest, merge, of } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { flatMap, map, mergeMap, take, withLatestFrom } from 'rxjs/operators';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
-export interface TimelineTicks
+export interface TimelineTick
 {
     readonly id     : BehaviorSubject<string>;
     readonly from   : BehaviorSubject<number>;
@@ -19,14 +18,20 @@ export interface TimelineTicks
 
     readonly items       : Observable<any[]>;
     readonly shouldRender: Observable<boolean>;
-    readonly render      : Observable<[any[], boolean]>
+    readonly render      : Observable<[any[], boolean]>;
+    readonly width       : Observable<number>;
+    
+    readonly parent: BehaviorSubject<TimelineTick | null>;
+    readonly child : BehaviorSubject<TimelineTick | null>;
+    
+    positionFeed(tickIndex: number): Observable<number>;
 }
 
 @Directive({
-    selector: '[timelineTicks]',
-    exportAs: 'timelineTicks'
+    selector: '[timelineTick]',
+    exportAs: 'timelineTick'
 })
-export class TimelineTicksDirective extends Destroyable implements TimelineTicks
+export class TimelineTickDirective implements TimelineTick
 {
     public readonly id     : BehaviorSubject<string> = new BehaviorSubject('');
     public readonly from   : BehaviorSubject<number> = new BehaviorSubject(0);
@@ -38,6 +43,10 @@ export class TimelineTicksDirective extends Destroyable implements TimelineTicks
     public readonly items!       : Observable<any[]>;
     public readonly shouldRender!: Observable<boolean>;
     public readonly render!      : Observable<[any[], boolean]>;
+    public readonly width!       : Observable<number>;
+
+    public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
+    public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
 
     constructor(
         public  readonly view    : ViewContainerRef,
@@ -45,22 +54,21 @@ export class TimelineTicksDirective extends Destroyable implements TimelineTicks
         private readonly state   : TimelineState,
         private readonly tools   : TimelineToolsService
     )
-    {
-        super();
-        
+    {        
         this.items        = this.itemsFeed();
         this.shouldRender = this.shouldRenderFeed();
         this.render       = this.renderFeed();
+        this.width        = this.widthFeed();
     }
 
-    @Input() public set timelineTicks       (value: string) { this.id.next(value); }
+    @Input() public set timelineTick       (value: string) { this.id.next(value); }
 
-    @Input() public set timelineTicksFrom   (value: number) { this.from .next(value); }
-    @Input() public set timelineTicksTo     (value: number) { this.to   .next(value); }
-    @Input() public set timelineTicksJumps  (value: number) { this.jumps.next(value); }
+    @Input() public set timelineTickFrom   (value: number) { this.from .next(value); }
+    @Input() public set timelineTickTo     (value: number) { this.to   .next(value); }
+    @Input() public set timelineTickJumps  (value: number) { this.jumps.next(value); }
 
-    @Input() public set timelineTicksMinZoom(value: number) { this.minZoom.next(value); }
-    @Input() public set timelineTicksMaxZoom(value: number) { this.maxZoom.next(value); }
+    @Input() public set timelineTickMinZoom(value: number) { this.minZoom.next(value); }
+    @Input() public set timelineTickMaxZoom(value: number) { this.maxZoom.next(value); }
 
     private itemsFeed(): Observable<any[]>
     {
@@ -80,6 +88,24 @@ export class TimelineTicksDirective extends Destroyable implements TimelineTicks
     private renderFeed(): Observable<[any[], boolean]>
     {
         return combineLatest([this.items, this.shouldRender]);
+    }
+
+    private widthFeed(): Observable<number>
+    {
+        return merge(this.parent, this.items, this.state.baseTickSize).pipe(
+            map           (_      => this.parent.value),
+            mergeMap(parent => parent ? parent.width : this.state.baseTickSize),
+            take(1),
+            withLatestFrom(this.items),
+            map           (([parentWidth, items]) => parentWidth / items.length)
+        );
+    }
+
+    public positionFeed(tickIndex: number): Observable<number>
+    {
+        return this.width.pipe(
+            map(width => width * tickIndex),
+        );
     }
 
     // TODO: Move to tools

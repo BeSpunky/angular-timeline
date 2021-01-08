@@ -1,8 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TimelineRenderer, TimelineRendererService } from '../services/timeline-renderer.service';
-import { TimelineState, TimelineStateService } from '../services/timeline-state.service';
-import { TimelineTicks, TimelineTicksDirective } from './timeline-ticks.directive';
+import { map, startWith, takeUntil } from 'rxjs/operators';
+import { TimelineRenderer } from '../services/timeline-renderer.service';
+import { TimelineState } from '../services/timeline-state.service';
+import { TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
 @Directive({
     selector : '[timeline]',
@@ -10,9 +11,10 @@ import { TimelineTicks, TimelineTicksDirective } from './timeline-ticks.directiv
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
-    @ContentChildren(TimelineTicksDirective) public tickDefinitions!: QueryList<TimelineTicks>;
+    @ContentChildren(TimelineTickDirective) public ticks!: QueryList<TimelineTick>;
     
     constructor(
+        private changes : ChangeDetectorRef,
         public  state   : TimelineState,
         private renderer: TimelineRenderer
     )
@@ -22,22 +24,48 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 
     ngAfterViewInit()
     {
-        setTimeout(() => this.tickDefinitions.forEach((ticks, index) => this.observeTick(ticks, index)), 0);
+        this.observeTicks();
+
+        this.changes.detectChanges();
     }
 
-    private observeTick(ticks: TimelineTicks, tickLevel: number): void
+    private observeTicks(): void
     {
-        this.subscribe(ticks.render, ([items, shouldRender]) => this.updateTicks(ticks, tickLevel, items, shouldRender));
+        const tickUpdates = this.ticks.changes.pipe(startWith(0), map(() => this.ticks.toArray()));
+
+        this.subscribe(tickUpdates, ticks =>
+        {
+            ticks.forEach((tick, index) =>
+            {
+                this.initTickHierarchy(ticks, index);
+                
+                this.observeTick(tick, index);
+            });
+        });
     }
 
-    private updateTicks(ticks: TimelineTicks, tickLevel: number, items: any[], shouldRender: boolean): void
+    private observeTick(tick: TimelineTick, tickLevel: number): void
     {
-        shouldRender ? this.renderer.renderTicks(ticks, tickLevel, items) 
+        // If ticks were changes (e.g. an ngIf or ngFor creates them) then takeUntil will unsubscribe from the render observable
+        this.subscribe(tick.render.pipe(takeUntil(this.ticks.changes)), ([items, shouldRender]) => this.updateTicks(tick, tickLevel, items, shouldRender));
+    }
+
+    private updateTicks(tick: TimelineTick, tickLevel: number, items: any[], shouldRender: boolean): void
+    {
+        shouldRender ? this.renderer.renderTicks(tick, tickLevel, items) 
                      : this.renderer.unrenderTicks(tickLevel);
     }
 
+    private initTickHierarchy(ticks: TimelineTick[], index: number): void
+    {
+        const tick = ticks[index];
+
+        if (index > 0               ) tick.parent.next(ticks[index - 1]);
+        if (index < ticks.length - 1) tick.child .next(ticks[index + 1]);
+    }
+
     /** The width of the top level tick in zero-zoom mode. */
-    @Input() public set baseTickSize(value: number | string)
+    @Input() public set baseTickSize(value: number)
     {
         this.state.baseTickSize.next(value);
     }

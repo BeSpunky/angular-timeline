@@ -1,10 +1,21 @@
-import { ClassProvider, Injectable, TemplateRef, ViewContainerRef } from '@angular/core';
-import { TimelineTicks } from '../directives/timeline-ticks.directive';
+import { ClassProvider, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { TimelineTick } from '../directives/timeline-tick.directive';
 import { CreatedView, TimelineState } from './timeline-state.service';
+
+export interface TickContext
+{
+    state    : TimelineState;
+    tickLevel: number;
+    value    : any;
+    index    : number;
+    width    : Observable<number>;
+    position : Observable<number>;
+}
 
 export abstract class TimelineRenderer
 {
-    abstract renderTicks(ticks: TimelineTicks, tickLevel: number, items: any[]): void;
+    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[]): void;
     abstract unrenderTicks(tickLevel: number): void;
 }
 
@@ -13,15 +24,15 @@ export class TimelineRendererService extends TimelineRenderer
 {
     constructor(private state: TimelineState) { super(); }
     
-    public renderTicks(ticks: TimelineTicks, tickLevel: number, items: any[]): void
+    // TODO: Aggregate changes instead of clearing and recreating views
+    public renderTicks(tick: TimelineTick, tickLevel: number, items: any[]): void
     {
-        // TODO: Aggregate changes instead of clearing and recreating views
         if (this.state.ticksInView[tickLevel]) return;
         
         const createdViews = items.map((item, index) =>
         {
-            const context = this.createViewContext(item, tickLevel, index);
-            const view    = ticks.view!.createEmbeddedView(ticks.template, context);
+            const context = this.createViewContext(tick, item, tickLevel, index);
+            const view    = tick.view!.createEmbeddedView(tick.template, context);
             
             return { item, index, context, view } as CreatedView;
         });
@@ -38,14 +49,16 @@ export class TimelineRendererService extends TimelineRenderer
         delete this.state.ticksInView[tickLevel];
     }
 
-    private createViewContext(value: any, tickLevel: number, index: number): any
+    private createViewContext(tick: TimelineTick, value: any, tickLevel: number, index: number): any
     {
         const context = {
             state: this.state,
             tickLevel,
             value,
-            index
-        };
+            index,
+            width: tick.width,
+            position: tick.positionFeed(index)
+        } as TickContext;
 
         return {
             $implicit: context,

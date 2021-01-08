@@ -13,7 +13,7 @@ export interface CreatedView
 export abstract class TimelineState
 {
     abstract zoom        : BehaviorSubject<number>;
-    abstract baseTickSize: BehaviorSubject<number | string>;
+    abstract baseTickSize: BehaviorSubject<number>;
 
     abstract ticksInView: { [tickLevel: number]: CreatedView[] };
 
@@ -23,8 +23,8 @@ export abstract class TimelineState
 @Injectable()
 export class TimelineStateService extends TimelineState
 {
-    public readonly zoom        : BehaviorSubject<number>          = new BehaviorSubject(0);
-    public readonly baseTickSize: BehaviorSubject<number | string> = new BehaviorSubject('80%' as number | string);
+    public readonly zoom        : BehaviorSubject<number> = new BehaviorSubject(0);
+    public readonly baseTickSize: BehaviorSubject<number> = new BehaviorSubject(300);
 
     public readonly ticksInView: { [tickLevel: number]: CreatedView[] } = { };
 
