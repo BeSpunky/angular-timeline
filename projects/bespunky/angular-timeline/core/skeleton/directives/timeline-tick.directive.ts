@@ -1,6 +1,6 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable, BehaviorSubject, combineLatest, merge, of } from 'rxjs';
-import { flatMap, map, mergeMap, take, withLatestFrom } from 'rxjs/operators';
+import { finalize, flatMap, map, mergeMap, pluck, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
@@ -18,7 +18,7 @@ export interface TimelineTick
 
     readonly items       : Observable<any[]>;
     readonly shouldRender: Observable<boolean>;
-    readonly render      : Observable<[any[], boolean]>;
+    readonly render      : Observable<[any[], boolean, number]>;
     readonly width       : Observable<number>;
     
     readonly parent: BehaviorSubject<TimelineTick | null>;
@@ -42,7 +42,7 @@ export class TimelineTickDirective implements TimelineTick
 
     public readonly items!       : Observable<any[]>;
     public readonly shouldRender!: Observable<boolean>;
-    public readonly render!      : Observable<[any[], boolean]>;
+    public readonly render!      : Observable<[any[], boolean, number]>;
     public readonly width!       : Observable<number>;
 
     public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
@@ -85,19 +85,24 @@ export class TimelineTickDirective implements TimelineTick
         );
     }
     
-    private renderFeed(): Observable<[any[], boolean]>
+    private renderFeed(): Observable<[any[], boolean, number]>
     {
-        return combineLatest([this.items, this.shouldRender]);
+        const duplicateCount = this.parent.pipe(
+            switchMap(p => p ? p.items : of({ length: 1 })),
+            pluck('length')
+        );
+
+        return combineLatest([this.items, this.shouldRender, duplicateCount]);
     }
 
     private widthFeed(): Observable<number>
     {
         return merge(this.parent, this.items, this.state.baseTickSize).pipe(
             map           (_      => this.parent.value),
-            mergeMap(parent => parent ? parent.width : this.state.baseTickSize),
+            switchMap(parent => parent ? parent.width : this.state.baseTickSize),
             take(1),
             withLatestFrom(this.items),
-            map           (([parentWidth, items]) => parentWidth / items.length)
+            map(([parentWidth, items]) => parentWidth / items.length)
         );
     }
 

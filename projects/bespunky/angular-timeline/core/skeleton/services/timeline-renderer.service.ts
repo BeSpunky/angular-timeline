@@ -2,6 +2,7 @@ import { ClassProvider, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TimelineTick } from '../directives/timeline-tick.directive';
 import { CreatedView, TimelineState } from './timeline-state.service';
+import { TimelineToolsService } from './timeline-tools.service';
 
 export interface TickContext
 {
@@ -15,21 +16,22 @@ export interface TickContext
 
 export abstract class TimelineRenderer
 {
-    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[]): void;
+    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
     abstract unrenderTicks(tickLevel: number): void;
 }
 
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
 {
-    constructor(private state: TimelineState) { super(); }
+    constructor(private state: TimelineState, private tools: TimelineToolsService) { super(); }
     
     // TODO: Aggregate changes instead of clearing and recreating views
-    public renderTicks(tick: TimelineTick, tickLevel: number, items: any[]): void
+    public renderTicks(tick: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void
     {
+        // If already rendered, do not render again
         if (this.state.ticksInView[tickLevel]) return;
         
-        const createdViews = items.map((item, index) =>
+        const createdViews = this.tools.duplicateMap(items, duplicateCount, (item, index) =>
         {
             const context = this.createViewContext(tick, item, tickLevel, index);
             const view    = tick.view!.createEmbeddedView(tick.template, context);
@@ -37,6 +39,7 @@ export class TimelineRendererService extends TimelineRenderer
             return { item, index, context, view } as CreatedView;
         });
 
+        // Update state with created views
         this.state.ticksInView[tickLevel] = createdViews;
     }
 
