@@ -1,5 +1,5 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { Observable, BehaviorSubject, combineLatest, merge, of } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, merge, of, zip } from 'rxjs';
 import { finalize, flatMap, map, mergeMap, pluck, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
@@ -16,10 +16,11 @@ export interface TimelineTick
     readonly view    : ViewContainerRef;
     readonly template: TemplateRef<any>;
 
-    readonly items       : Observable<any[]>;
-    readonly shouldRender: Observable<boolean>;
-    readonly render      : Observable<[any[], boolean, number]>;
-    readonly width       : Observable<number>;
+    readonly items         : Observable<any[]>;
+    readonly shouldRender  : Observable<boolean>;
+    readonly duplicateCount: Observable<number>;
+    readonly render        : Observable<[any[], boolean, number]>;
+    readonly width         : Observable<number>;
     
     readonly parent: BehaviorSubject<TimelineTick | null>;
     readonly child : BehaviorSubject<TimelineTick | null>;
@@ -40,10 +41,11 @@ export class TimelineTickDirective implements TimelineTick
     public readonly minZoom: BehaviorSubject<number> = new BehaviorSubject(0);
     public readonly maxZoom: BehaviorSubject<number> = new BehaviorSubject(100);
 
-    public readonly items!       : Observable<any[]>;
-    public readonly shouldRender!: Observable<boolean>;
-    public readonly render!      : Observable<[any[], boolean, number]>;
-    public readonly width!       : Observable<number>;
+    public readonly items!         : Observable<any[]>;
+    public readonly shouldRender!  : Observable<boolean>;
+    public readonly duplicateCount!: Observable<number>;
+    public readonly render!        : Observable<[any[], boolean, number]>;
+    public readonly width!         : Observable<number>;
 
     public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
     public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
@@ -55,10 +57,11 @@ export class TimelineTickDirective implements TimelineTick
         private readonly tools   : TimelineToolsService
     )
     {        
-        this.items        = this.itemsFeed();
-        this.shouldRender = this.shouldRenderFeed();
-        this.render       = this.renderFeed();
-        this.width        = this.widthFeed();
+        this.items          = this.itemsFeed();
+        this.shouldRender   = this.shouldRenderFeed();
+        this.duplicateCount = this.duplciateCountFeed();
+        this.render         = this.renderFeed();
+        this.width          = this.widthFeed();
     }
 
     @Input() public set timelineTick       (value: string) { this.id.next(value); }
@@ -84,15 +87,19 @@ export class TimelineTickDirective implements TimelineTick
             map(_ => this.tickMatchesZoom(this.state.zoom.value))
         );
     }
+
+    private duplciateCountFeed(): Observable<number>
+    {
+        return merge(this.parent).pipe(
+            switchMap(parent => parent ? zip(parent.duplicateCount, parent.items.pipe(pluck('length'))) : of([1, 1])),
+            take(1),
+            map(([parentDuplicates, parentItems]) => parentDuplicates * parentItems)
+        );
+    }
     
     private renderFeed(): Observable<[any[], boolean, number]>
     {
-        const duplicateCount = this.parent.pipe(
-            switchMap(p => p ? p.items : of({ length: 1 })),
-            pluck('length')
-        );
-
-        return combineLatest([this.items, this.shouldRender, duplicateCount]);
+        return combineLatest([this.items, this.shouldRender, this.duplicateCount]);
     }
 
     private widthFeed(): Observable<number>
