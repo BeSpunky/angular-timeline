@@ -18,6 +18,8 @@ export abstract class TimelineState
     abstract ticksInView: { [tickLevel: number]: CreatedView[] };
 
     abstract debouncedZoom(dueTime?: number): Observable<number>;
+
+    abstract addZoom(delta: number): void;
 }
 
 @Injectable()
@@ -34,6 +36,11 @@ export class TimelineStateService extends TimelineState
             debounceTime(dueTime),
             distinctUntilChanged()
         );
+    }
+
+    public addZoom(delta: number): void
+    {
+        this.zoom.next(this.zoom.value + delta);
     }
 }
 

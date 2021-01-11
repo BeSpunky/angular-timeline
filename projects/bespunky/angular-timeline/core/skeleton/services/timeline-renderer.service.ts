@@ -1,5 +1,6 @@
-import { ClassProvider, Injectable } from '@angular/core';
+import { ClassProvider, ElementRef, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { TimelineTick } from '../directives/timeline-tick.directive';
 import { CreatedView, TimelineState } from './timeline-state.service';
 import { TimelineToolsService } from './timeline-tools.service';
@@ -14,16 +15,73 @@ export interface TickContext
     position : Observable<number>;
 }
 
+export class ViewBounds
+{
+    public readonly left!  : number;
+    public readonly top!   : number;
+    public readonly right! : number;
+    public readonly bottom!: number;
+
+    public readonly width! : number;
+    public readonly height!: number;
+    
+    constructor(
+        public readonly viewPortWidth : number,
+        public readonly viewPortHeight: number,
+        public readonly zoom          : number
+    )
+    {
+        /*
+         *             viewPortWidth
+         *     ------------------------------
+         *    |            width     <-zoom->| 
+         *    |       ---------------        | 
+         *    |      |               |       |  
+         *    |      |               |height | viewPortHeight 
+         *    |      |               |       |          
+         *    |       ---------------        |  
+         *    |                              | 
+         *     ------------------------------
+         * 
+         * The idea is to use the zoom to calculate the new bounds, while maintaining aspect ratio and keeping the bounds centered in the viewport.
+         */
+
+        // Use the new zoom level to directly calculate the new width
+        this.width  = viewPortWidth - zoom;
+        // Check the new ratio between the viewport and the viewbox width, then apply the same ratio to the height
+        this.height = viewPortHeight * (this.width / viewPortWidth);
+        this.left   = ViewBounds.startOfAlignedCenters(viewPortWidth , this.width);
+        this.top    = ViewBounds.startOfAlignedCenters(viewPortHeight, this.height);
+        this.right  = this.left + this.width;
+        this.bottom = this.top  + this.height;
+    }
+
+    private static startOfAlignedCenters(fullLength: number, part: number): number
+    {
+        return part > fullLength ? 0 : (fullLength - part) / 2;
+    }
+
+    public toSvgViewBox(): string
+    {
+        return `${this.left} ${this.top} ${this.width} ${this.height}`
+    }
+}
+
 export abstract class TimelineRenderer
 {
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
     abstract unrenderTicks(tickLevel: number): void;
+
+    abstract viewBoundsFor({ nativeElement: element }: ElementRef<HTMLElement>): Observable<ViewBounds>;
 }
 
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
 {
-    constructor(private state: TimelineState, private tools: TimelineToolsService) { super(); }
+    constructor(private state: TimelineState, private tools: TimelineToolsService)
+    {
+        super();
+    }
     
     // TODO: Aggregate changes instead of clearing and recreating views
     public renderTicks(tick: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void
@@ -59,7 +117,7 @@ export class TimelineRendererService extends TimelineRenderer
             tickLevel,
             value,
             index,
-            width: tick.width,
+            width   : tick.width,
             position: tick.positionFeed(index)
         } as TickContext;
 
@@ -67,6 +125,14 @@ export class TimelineRendererService extends TimelineRenderer
             $implicit: context,
             ...context
         };
+    }
+
+    public viewBoundsFor({ nativeElement: element }: ElementRef<HTMLElement>): Observable<ViewBounds>
+    {
+        // TODO: Hook to element resize event
+        return this.state.zoom.pipe(
+            map(zoom => new ViewBounds(element.clientWidth, element.clientHeight, zoom))
+        );
     }
 }
 

@@ -15,8 +15,13 @@ export class TimelineComponent
 {
     constructor(private state: TimelineState, private renderer: TimelineRenderer, private tools: TimelineToolsService) { }
 
-    @Input() set zoom(value: number)
+    @Input() public set zoom(value: number)
     {
         this.state.zoom.next(value);
+    }
+
+    public get zoom(): number
+    {
+        return this.state.zoom.value;
     }
 }

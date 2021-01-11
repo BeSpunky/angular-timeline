@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, ElementRef, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { map, startWith, takeUntil } from 'rxjs/operators';
-import { TimelineRenderer } from '../services/timeline-renderer.service';
+import { fromEvent, Observable } from 'rxjs';
+import { filter, map, pluck, startWith, takeUntil, tap } from 'rxjs/operators';
+import { TimelineRenderer, ViewBounds } from '../services/timeline-renderer.service';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
@@ -13,13 +14,27 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 {
     @ContentChildren(TimelineTickDirective) public ticks!: QueryList<TimelineTick>;
     
+    public readonly viewChanged: Observable<ViewBounds>;
+    public readonly svgViewBox : Observable<string>;
+
     constructor(
         private changes : ChangeDetectorRef,
         public  state   : TimelineState,
-        private renderer: TimelineRenderer
+        private renderer: TimelineRenderer,
+        private element : ElementRef
     )
     {
         super();
+
+        // TODO: Move to a new TimelineControlsService
+        const wheelEvent  = fromEvent<WheelEvent>(this.element.nativeElement, 'wheel');
+        // const hWheelEvent = wheelEvent.pipe(filter(e => e.deltaX !== 0), pluck('deltaX'), map(delta => -delta));
+        const vWheelEvent = wheelEvent.pipe(filter(e => e.deltaY !== 0), pluck('deltaY'), map(delta => -delta));
+
+        this.viewChanged = this.renderer.viewBoundsFor(this.element);
+        this.svgViewBox  = this.viewChanged.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
+
+        this.subscribe(vWheelEvent, delta => this.state.addZoom(Math.round(delta * 0.1)));
     }
 
     ngAfterViewInit()
