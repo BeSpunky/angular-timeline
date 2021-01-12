@@ -106,9 +106,8 @@ export class TimelineTickDirective implements TimelineTick
     {
         return merge(this.parent, this.items, this.state.baseTickSize).pipe(
             map           (_      => this.parent.value),
-            switchMap     (parent => parent ? parent.width : this.state.baseTickSize),
+            switchMap     (parent => parent ? zip(parent.width, this.items) : zip(this.state.baseTickSize, of([1]))),
             take          (1),
-            withLatestFrom(this.items),
             map           (([parentWidth, items]) => parentWidth / items.length)
         );
     }

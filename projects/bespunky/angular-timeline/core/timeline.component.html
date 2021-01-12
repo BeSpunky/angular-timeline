@@ -1,7 +1,7 @@
-<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="1400" #timeline="timeline">
+<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="700" #timeline="timeline">
     <line *timelineTick="'year'; from: 2000; to: 2005; minZoom: 0; maxZoom: 200; let index = index; let position = position" [attr.x1]="position | async" y1="0"   [attr.x2]="position | async" y2="800" stroke-width="5" stroke="black"></line>
     <line *timelineTick="'month'; from: 1; to: 3; minZoom: 100; maxZoom: 400; let index = index; let position = position"    [attr.x1]="position | async" y1="50"  [attr.x2]="position | async" y2="750" stroke-width="4" stroke="green"></line>
     <line *timelineTick="'day'; from: 1; to: 11; minZoom: 300; maxZoom: 600; let index = index; let position = position"     [attr.x1]="position | async" y1="100" [attr.x2]="position | async" y2="700" stroke-width="3" stroke="blue"></line>
-    <line *timelineTick="'hour'; from: 0; to: 5; minZoom: 500; maxZoom: 700; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line>
+    <line *timelineTick="'hour'; from: 0; to: 5; minZoom: 500; maxZoom: 750; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line>
     <line *timelineTick="'minute'; from: 0; to: 5; minZoom: 600; maxZoom: 800; let index = index; let position = position"   [attr.x1]="position | async" y1="200" [attr.x2]="position | async" y2="600" stroke-width="1" stroke="gray"></line>
 </svg>
