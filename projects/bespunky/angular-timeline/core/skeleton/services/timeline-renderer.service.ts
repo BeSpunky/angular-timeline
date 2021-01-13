@@ -34,13 +34,13 @@ export class ViewBounds
         /*
          *             viewPortWidth
          *     ------------------------------
-         *    |            width     <-zoom->| 
-         *    |       ---------------        | 
-         *    |      |               |       |  
-         *    |      |               |height | viewPortHeight 
-         *    |      |               |       |          
-         *    |       ---------------        |  
-         *    |                              | 
+         *    |            width     <-zoom->|
+         *    |       ---------------        |
+         *    |      |               |       |
+         *    |      |               |height | viewPortHeight
+         *    |      |               |       |
+         *    |       ---------------        |
+         *    |                              |
          *     ------------------------------
          * 
          * The idea is to use the zoom to calculate the new bounds, while maintaining aspect ratio and keeping the bounds centered in the viewport.
@@ -72,13 +72,13 @@ export abstract class TimelineRenderer
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
     abstract unrenderTicks(tickLevel: number): void;
 
-    abstract viewBoundsFor({ nativeElement: element }: ElementRef<HTMLElement>): Observable<ViewBounds>;
+    abstract viewBounds(): Observable<ViewBounds>;
 }
 
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
 {
-    constructor(private state: TimelineState, private tools: TimelineToolsService)
+    constructor(private state: TimelineState, private tools: TimelineToolsService, private element: ElementRef)
     {
         super();
     }
@@ -127,8 +127,10 @@ export class TimelineRendererService extends TimelineRenderer
         };
     }
 
-    public viewBoundsFor({ nativeElement: element }: ElementRef<HTMLElement>): Observable<ViewBounds>
+    public viewBounds(): Observable<ViewBounds>
     {
+        const { nativeElement: element } = this.element;
+
         // TODO: Hook to element resize event
         return this.state.zoom.pipe(
             map(zoom => new ViewBounds(element.clientWidth, element.clientHeight, zoom))

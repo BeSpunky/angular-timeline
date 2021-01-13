@@ -41,11 +41,11 @@ export class TimelineTickDirective implements TimelineTick
     public readonly minZoom: BehaviorSubject<number> = new BehaviorSubject(0);
     public readonly maxZoom: BehaviorSubject<number> = new BehaviorSubject(100);
 
-    public readonly items!         : Observable<any[]>;
-    public readonly shouldRender!  : Observable<boolean>;
-    public readonly duplicateCount!: Observable<number>;
-    public readonly render!        : Observable<[any[], boolean, number]>;
-    public readonly width!         : Observable<number>;
+    public readonly items         : Observable<any[]>;
+    public readonly shouldRender  : Observable<boolean>;
+    public readonly duplicateCount: Observable<number>;
+    public readonly render        : Observable<[any[], boolean, number]>;
+    public readonly width         : Observable<number>;
 
     public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
     public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);

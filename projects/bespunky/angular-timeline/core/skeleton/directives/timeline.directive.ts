@@ -2,13 +2,15 @@ import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, ElementRe
 import { Destroyable } from '@bespunky/angular-zen/core';
 import { fromEvent, Observable } from 'rxjs';
 import { filter, map, pluck, startWith, takeUntil, tap } from 'rxjs/operators';
-import { TimelineRenderer, ViewBounds } from '../services/timeline-renderer.service';
-import { TimelineState } from '../services/timeline-state.service';
+import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
+import { TimelineRenderer, TimelineRendererProvider, ViewBounds } from '../services/timeline-renderer.service';
+import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
 import { TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
 @Directive({
     selector : '[timeline]',
-    exportAs : 'timeline'
+    exportAs : 'timeline',
+    providers: [TimelineStateProvider, TimelineRendererProvider, TimelineControlProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
@@ -21,20 +23,13 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         private changes : ChangeDetectorRef,
         public  state   : TimelineState,
         private renderer: TimelineRenderer,
-        private element : ElementRef
+        private control : TimelineControl
     )
     {
         super();
 
-        // TODO: Move to a new TimelineControlsService
-        const wheelEvent  = fromEvent<WheelEvent>(this.element.nativeElement, 'wheel');
-        // const hWheelEvent = wheelEvent.pipe(filter(e => e.deltaX !== 0), pluck('deltaX'), map(delta => -delta));
-        const vWheelEvent = wheelEvent.pipe(filter(e => e.deltaY !== 0), pluck('deltaY'), map(delta => -delta));
-
-        this.viewChanged = this.renderer.viewBoundsFor(this.element);
-        this.svgViewBox  = this.viewChanged.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
-
-        this.subscribe(vWheelEvent, delta => this.state.addZoom(Math.round(delta * 0.1)));
+        this.viewChanged = this.renderer.viewBounds();
+        this.svgViewBox = this.viewChanged.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
     }
 
     ngAfterViewInit()
@@ -83,5 +78,11 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     @Input() public set baseTickSize(value: number)
     {
         this.state.baseTickSize.next(value);
+    }
+
+    /** Activates or deactivates zoom on wheel events. Default is `true`. */
+    @Input() public set zoomOnWheel(active: boolean)
+    {
+        this.control.zoomOnWheel.next(active);
     }
 }
