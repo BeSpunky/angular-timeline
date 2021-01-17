@@ -104,11 +104,15 @@ export class TimelineTickDirective implements TimelineTick
 
     private widthFeed(): Observable<number>
     {
-        return merge(this.parent, this.items, this.state.baseTickSize).pipe(
-            map           (_      => this.parent.value),
-            switchMap     (parent => parent ? zip(parent.width, this.items) : zip(this.state.baseTickSize, of([1]))),
-            take          (1),
-            map           (([parentWidth, items]) => parentWidth / items.length)
+        // combineLatest so that all values will be emitted each time any of the observables emits.
+        return combineLatest([this.parent, this.items, this.state.baseTickSize, this.state.zoom]).pipe(
+            mergeMap(([parent, items, baseTickSize, zoom]) => 
+                // The width of the top most parent will increase and decrease depending on the zoom.
+                // Other child ticks will calculate width based on their parent's width and item count.
+                // This ensures zooming can be infinite and ticks will still maintain their size and proportions.
+                parent ? parent.width.pipe(map(parentWidth => parentWidth / items.length))
+                       : of(baseTickSize + zoom)
+            )
         );
     }
 
