@@ -12,6 +12,8 @@ export abstract class TimelineControl
     abstract readonly moveDeltaFactor: BehaviorSubject<number>;
 }
 
+// TODO: Reverse deltas for RTL rendering
+
 @Injectable()
 export class TimelineControlService extends Destroyable
 {
@@ -20,7 +22,7 @@ export class TimelineControlService extends Destroyable
     public readonly zoomOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
     public readonly zoomDeltaFactor: BehaviorSubject<number>  = new BehaviorSubject(0.1);
     public readonly moveOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveDeltaFactor: BehaviorSubject<number>  = new BehaviorSubject(0.1);
+    public readonly moveDeltaFactor: BehaviorSubject<number>  = new BehaviorSubject(0.2);
 
     constructor(private state: TimelineState, private element: ElementRef)
     {
