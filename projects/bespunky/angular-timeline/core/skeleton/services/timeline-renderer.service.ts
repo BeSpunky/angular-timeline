@@ -1,6 +1,7 @@
 import { ClassProvider, ElementRef, Injectable } from '@angular/core';
-import { combineLatest, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Destroyable } from '@bespunky/angular-zen/core';
+import { combineLatest, fromEvent, Observable } from 'rxjs';
+import { map, startWith, tap } from 'rxjs/operators';
 import { TimelineTick } from '../directives/timeline-tick.directive';
 import { CreatedView, TimelineState } from './timeline-state.service';
 import { TimelineToolsService } from './timeline-tools.service';
@@ -75,7 +76,7 @@ export class ViewBounds
     }
 }
 
-export abstract class TimelineRenderer
+export abstract class TimelineRenderer extends Destroyable
 {
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
     abstract unrenderTicks(tickLevel: number): void;
@@ -89,6 +90,23 @@ export class TimelineRendererService extends TimelineRenderer
     constructor(private state: TimelineState, private tools: TimelineToolsService, private element: ElementRef)
     {
         super();
+
+        this.subscribe(this.viewPortSizeFeed());
+    }
+
+    private viewPortSizeFeed(): Observable<{ width: number, height: number }>
+    {
+        const element: HTMLElement = this.element.nativeElement;
+
+        return fromEvent<UIEvent>(element, 'resize').pipe(
+            startWith(null),
+            map(_ => ({ width: element.clientWidth, height: element.clientHeight })),
+            tap(viewPort =>
+            {
+                this.state.viewPortWidth .next(viewPort.width);
+                this.state.viewPortHeight.next(viewPort.height);
+            })
+        );
     }
     
     // TODO: Aggregate changes instead of clearing and recreating views
@@ -140,8 +158,8 @@ export class TimelineRendererService extends TimelineRenderer
         const { nativeElement: element } = this.element;
 
         // TODO: Hook to element resize event
-        return combineLatest([this.state.zoom, this.state.viewCenter]).pipe(
-            map(([zoom, viewCenter]) => new ViewBounds(element.clientWidth, element.clientHeight, zoom, viewCenter))
+        return combineLatest([this.state.viewPortWidth, this.state.viewPortHeight, this.state.zoom, this.state.viewCenter]).pipe(
+            map(([viewPortWidth, viewPortHeight, zoom, viewCenter]) => new ViewBounds(viewPortWidth, viewPortHeight, zoom, viewCenter))
         );
     }
 }
