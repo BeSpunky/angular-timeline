@@ -155,9 +155,6 @@ export class TimelineRendererService extends TimelineRenderer
 
     public viewBounds(): Observable<ViewBounds>
     {
-        const { nativeElement: element } = this.element;
-
-        // TODO: Hook to element resize event
         return combineLatest([this.state.viewPortWidth, this.state.viewPortHeight, this.state.zoom, this.state.viewCenter]).pipe(
             map(([viewPortWidth, viewPortHeight, zoom, viewCenter]) => new ViewBounds(viewPortWidth, viewPortHeight, zoom, viewCenter))
         );
