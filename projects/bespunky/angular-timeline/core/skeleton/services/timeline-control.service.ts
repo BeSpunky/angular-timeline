@@ -4,7 +4,7 @@ import { BehaviorSubject, fromEvent, merge, Observable, OperatorFunction } from 
 import { filter, map, mergeMap, tap, windowToggle } from 'rxjs/operators';
 import { TimelineState } from './timeline-state.service';
 
-export abstract class TimelineControl
+export abstract class TimelineControl extends Destroyable
 {
     abstract readonly zoomOnWheel    : BehaviorSubject<boolean>;
     abstract readonly zoomDeltaFactor: BehaviorSubject<number>;
@@ -15,7 +15,7 @@ export abstract class TimelineControl
 // TODO: Reverse deltas for RTL rendering
 
 @Injectable()
-export class TimelineControlService extends Destroyable
+export class TimelineControlService extends TimelineControl
 {
     private readonly wheel: Observable<WheelEvent>;
     
