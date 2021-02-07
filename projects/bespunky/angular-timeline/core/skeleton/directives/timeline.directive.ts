@@ -1,9 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, ElementRef, Input, QueryList } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { fromEvent, Observable } from 'rxjs';
-import { filter, map, pluck, startWith, takeUntil, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
-import { TimelineRenderer, TimelineRendererProvider, ViewBounds } from '../services/timeline-renderer.service';
+import { TimelineRenderer, TimelineRendererProvider } from '../services/timeline-renderer.service';
 import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
 import { TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
@@ -16,7 +16,6 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 {
     @ContentChildren(TimelineTickDirective) public ticks!: QueryList<TimelineTick>;
     
-    public readonly viewChanged: Observable<ViewBounds>;
     public readonly svgViewBox : Observable<string>;
 
     constructor(
@@ -28,8 +27,7 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     {
         super();
 
-        this.viewChanged = this.renderer.viewBounds();
-        this.svgViewBox = this.viewChanged.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
+        this.svgViewBox = this.state.viewBounds.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
     }
 
     ngAfterViewInit()

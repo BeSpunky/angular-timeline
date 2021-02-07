@@ -1,6 +1,6 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable, BehaviorSubject, combineLatest, merge, of, zip } from 'rxjs';
-import { finalize, flatMap, map, mergeMap, pluck, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { map, mergeMap, pluck, switchMap, take } from 'rxjs/operators';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
@@ -111,7 +111,7 @@ export class TimelineTickDirective implements TimelineTick
                 // Other child ticks will calculate width based on their parent's width and item count.
                 // This ensures zooming can be infinite and ticks will still maintain their size and proportions.
                 parent ? parent.width.pipe(map(parentWidth => parentWidth / items.length))
-                       : of(baseTickSize + zoom)
+                       : of(baseTickSize * Math.pow(1.01, zoom - 1)) // TODO: Refactor and take delta factor from state?
             )
         );
     }

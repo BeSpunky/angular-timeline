@@ -12,5 +12,12 @@ import { TimelineToolsService } from './skeleton/services/timeline-tools.service
 })
 export class TimelineComponent
 {
+    x: number = 0;
+    y: number = 0;
 
+    ddd(e: MouseEvent): void
+    {
+        this.x = e.offsetX;
+        this.y = e.offsetY;
+    }
 }
