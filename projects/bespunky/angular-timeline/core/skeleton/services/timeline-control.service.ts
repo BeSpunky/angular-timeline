@@ -8,9 +8,7 @@ import { TimelineState } from './timeline-state.service';
 export abstract class TimelineControl extends Destroyable
 {
     abstract readonly zoomOnWheel    : BehaviorSubject<boolean>;
-    abstract readonly zoomDeltaFactor: BehaviorSubject<number>;
     abstract readonly moveOnWheel    : BehaviorSubject<boolean>;
-    abstract readonly moveDeltaFactor: BehaviorSubject<number>;
 }
 
 // TODO: Reverse deltas for RTL rendering
@@ -21,9 +19,7 @@ export class TimelineControlService extends TimelineControl
     private readonly wheel: Observable<WheelEvent>;
     
     public readonly zoomOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly zoomDeltaFactor: BehaviorSubject<number>  = new BehaviorSubject(1.01);
     public readonly moveOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveDeltaFactor: BehaviorSubject<number>  = new BehaviorSubject(0.2);
 
     constructor(private state: TimelineState, private element: ElementRef)
     {
@@ -58,35 +54,12 @@ export class TimelineControlService extends TimelineControl
             mergeMap(wheel => wheel),
             filter(e => e.deltaY !== 0),
             // -delta reverses zooming so in is positive and out is negative
-            map(e => [
-                -Math.sign(e.deltaY),
-                this.state.viewBounds.value.left,
-                this.state.viewCenter.value,
-                e.offsetX,
-                this.zoomDeltaFactor.value
-            ]),
-            map(([zoomDirection, cameraX, viewCenter, screenMouseX, zoomDeltaFactor]) =>
-            {
-                // Movement factor is calculated based on the last size.
-                // Zoom factor is calculated based on the zoom level.
-
-                let factor = zoomDeltaFactor;
-                
-                if (zoomDirection < 0) factor = 1 / factor;
-
-                /** The mouse position relative to the full drawing. */
-                const drawingMouseX   = cameraX + screenMouseX;
-                // What is the current distance between the mouse and the center before zooming?
-                const dxMouseToCenter = drawingMouseX - viewCenter;
-                // Where will the mouse be after zooming?
-                const newMouseX       = drawingMouseX * factor;
-                // Where should the new center be relative to the new mouse position after zooming?
-                const newViewCenter   = newMouseX - dxMouseToCenter;
-                
-                this.state.viewCenter.next(newViewCenter);
-
-                return zoomDirection;
-            }),
+            map(e => [-Math.sign(e.deltaY), e.offsetX]),
+            // Movement factor is calculated based on the last size.
+            // Zoom factor is calculated based on the zoom level.
+            map(([zoomDirection, screenMouseX]) => [zoomDirection, this.calculateViewCenterZoomedToMouse(zoomDirection, screenMouseX)]),
+            tap(([zoomDirection, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
+            map(([zoomDirection]) => zoomDirection),
             tap(zoomDirection => this.state.addZoom(zoomDirection)),
         );
     }
@@ -100,7 +73,7 @@ export class TimelineControlService extends TimelineControl
 
         const hScroll = wheel.pipe(
             filter(e => e.deltaX !== 0),
-            map(e => Math.round(e.deltaX * this.moveDeltaFactor.value)),
+            map(e => Math.round(e.deltaX * this.state.moveDeltaFactor.value)),
         );
 
         return merge(hScroll).pipe(
@@ -122,6 +95,35 @@ export class TimelineControlService extends TimelineControl
         const off = observable.pipe(filter(activate => !activate));
         
         return windowToggle<T, boolean>(on, () => off);
+    }
+    
+    private calculateViewCenterZoomedToMouse(zoomDirection: number, screenMouseX: number): number
+    {
+        /** The idea is to:
+         * 1. Calculate the current distance between the mouse and the viewCenter, so the same distance could be applied later-on.
+         * 2. Calculate where the pixel that was under the mouse will be AFTER zooming. This will be the position multiplied by the factor.
+         *    If the image grew by 15%, the pixel under the mouse did the same.
+         * 3. Subtract the current distance from the new mouse position to receive the new viewCenter.
+         */
+
+        let factor = this.state.zoomDeltaFactor.value;
+        
+        // When zooming out, flip the factor to shrink instead of grow
+        if (zoomDirection < 0) factor = 1 / factor;
+
+        /** The current left position of the viewbox relative to the complete drawing. */
+        const cameraX = this.state.viewBounds.value.left;
+        /** The current center position of the viewbox relative to the complete drawing. */
+        const viewCenter = this.state.viewCenter.value;
+
+        /** The mouse position relative to the full drawing. */
+        const drawingMouseX   = cameraX + screenMouseX;
+        /** The distance between the mouse and the center before zooming. This should be kept after zoom. */
+        const dxMouseToCenter = drawingMouseX - viewCenter;
+        /** The mouse position after zooming. */
+        const newMouseX       = drawingMouseX * factor;
+        // The new center be relative to the new mouse position after zooming?
+        return newMouseX - dxMouseToCenter;
     }
 }
 
