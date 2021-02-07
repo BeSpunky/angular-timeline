@@ -46,8 +46,6 @@ export class TimelineControlService extends TimelineControl
         this.subscribe(this.viewBoundsFeed());
     }
 
-    // const hWheelEvent = wheelEvent.pipe(filter(e => e.deltaX !== 0), pluck('deltaX'), map(delta => -delta));
-
     private wheelFeed(): Observable<WheelEvent>
     {
         return fromEvent<WheelEvent>(this.element.nativeElement, 'wheel');
@@ -104,11 +102,6 @@ export class TimelineControlService extends TimelineControl
             filter(e => e.deltaX !== 0),
             map(e => Math.round(e.deltaX * this.moveDeltaFactor.value)),
         );
-
-        // const vScroll = wheel.pipe(
-        //     filter(e => e.deltaY !== 0),
-        //     map(e => Math.round(-e.deltaY * this.moveDeltaFactor.value))
-        // );
 
         return merge(hScroll).pipe(
             tap(delta => this.state.addViewCenter(delta))
