@@ -33,41 +33,12 @@ export class ViewBounds
         public readonly viewCenter    : number
     )
     {
-        /*
-         *             viewPortWidth
-         *     ------------------------------
-         *    |            width     <-zoom->|
-         *    |       ---------------        |
-         *    |      |               |       |
-         *    |      |               |height | viewPortHeight
-         *    |      |               |       |
-         *    |       ---------------        |
-         *    |                              |
-         *     ------------------------------
-         * 
-         * The idea is to use the zoom to calculate the new bounds, while maintaining aspect ratio and keeping the bounds centered in the viewport.
-         */
-
-        // // Use the new zoom level to directly calculate the new width
-        // this.width  = viewPortWidth - zoom;
-        // // Check the new ratio between the viewport and the viewbox width, then apply the same ratio to the height
-        // this.height = viewPortHeight * (this.width / viewPortWidth);
-        // this.left   = ViewBounds.startOfAlignedCenters(viewPortWidth , this.width);
-        // this.top    = ViewBounds.startOfAlignedCenters(viewPortHeight, this.height);
-        // this.right  = this.left + this.width;
-        // this.bottom = this.top  + this.height;
-
         this.top    = 0;
-        this.left   = viewCenter + viewCenter / 2;
+        this.left   = viewCenter - viewPortWidth / 2;
         this.width  = viewPortWidth;
         this.height = viewPortHeight;
         this.right  = this.left + this.width;
         this.bottom = this.top + this.height;
-    }
-
-    private static startOfAlignedCenters(fullLength: number, part: number): number
-    {
-        return part > fullLength ? 0 : (fullLength - part) / 2;
     }
 
     public toSvgViewBox(): string
@@ -80,8 +51,6 @@ export abstract class TimelineRenderer extends Destroyable
 {
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
     abstract unrenderTicks(tickLevel: number): void;
-
-    abstract viewBounds(): Observable<ViewBounds>;
 }
 
 @Injectable()
@@ -151,13 +120,6 @@ export class TimelineRendererService extends TimelineRenderer
             $implicit: context,
             ...context
         };
-    }
-
-    public viewBounds(): Observable<ViewBounds>
-    {
-        return combineLatest([this.state.viewPortWidth, this.state.viewPortHeight, this.state.zoom, this.state.viewCenter]).pipe(
-            map(([viewPortWidth, viewPortHeight, zoom, viewCenter]) => new ViewBounds(viewPortWidth, viewPortHeight, zoom, viewCenter))
-        );
     }
 }
 

@@ -1,6 +1,7 @@
 import { ClassProvider, Injectable, ViewRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ViewBounds } from './timeline-renderer.service';
 
 export interface CreatedView
 {
@@ -17,6 +18,7 @@ export abstract class TimelineState
     abstract zoom          : BehaviorSubject<number>;
     abstract baseTickSize  : BehaviorSubject<number>;
     abstract viewCenter    : BehaviorSubject<number>;
+    abstract viewBounds    : BehaviorSubject<ViewBounds>;
 
     abstract ticksInView: { [tickLevel: number]: CreatedView[] };
 
@@ -29,13 +31,19 @@ export abstract class TimelineState
 @Injectable()
 export class TimelineStateService extends TimelineState
 {
-    public readonly viewPortWidth : BehaviorSubject<number> = new BehaviorSubject(0);
-    public readonly viewPortHeight: BehaviorSubject<number> = new BehaviorSubject(0);
-    public readonly zoom          : BehaviorSubject<number> = new BehaviorSubject(0);
-    public readonly baseTickSize  : BehaviorSubject<number> = new BehaviorSubject(300);
-    public readonly viewCenter    : BehaviorSubject<number> = new BehaviorSubject(0);
+    public readonly viewPortWidth : BehaviorSubject<number>     = new BehaviorSubject(0);
+    public readonly viewPortHeight: BehaviorSubject<number>     = new BehaviorSubject(0);
+    public readonly zoom          : BehaviorSubject<number>     = new BehaviorSubject(1);
+    public readonly baseTickSize  : BehaviorSubject<number>     = new BehaviorSubject(300);
+    public readonly viewCenter    : BehaviorSubject<number>     = new BehaviorSubject(0);
+    public readonly viewBounds    : BehaviorSubject<ViewBounds> = new BehaviorSubject(new ViewBounds(0, 0, 0, 0));
     
     public readonly ticksInView: { [tickLevel: number]: CreatedView[] } = { };
+
+    constructor()
+    {
+        super();
+    }
 
     public debouncedZoom(dueTime: number = 200): Observable<number>
     {

@@ -1,11 +1,23 @@
-<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="500" #timeline="timeline">
-    <line *timelineTick="'year'; from: 2000; to: 2005; minZoom: 0; maxZoom: 200; let index = index; let position = position" [attr.x1]="position | async" y1="0"   [attr.x2]="position | async" y2="800" stroke-width="5" stroke="black"></line>
-    <line *timelineTick="'month'; from: 1; to: 3; minZoom: 0; maxZoom: 400; let index = index; let position = position"    [attr.x1]="position | async" y1="50"  [attr.x2]="position | async" y2="750" stroke-width="4" stroke="green"></line>
-    <line *timelineTick="'day'; from: 1; to: 3; minZoom: 200; maxZoom: 600; let index = index; let position = position"     [attr.x1]="position | async" y1="100" [attr.x2]="position | async" y2="700" stroke-width="3" stroke="blue"></line>
-    <line *timelineTick="'hour'; from: 0; to: 3; minZoom: 400; maxZoom: 999800; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line>
-    <line *timelineTick="'minute'; from: 0; to: 2; minZoom: 600; maxZoom: 999800; let index = index; let position = position"   [attr.x1]="position | async" y1="200" [attr.x2]="position | async" y2="600" stroke-width="1" stroke="gray"></line>
-</svg>
+<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="500" #timeline="timeline" (mousemove)="ddd($event)">
+    <line *timelineTick="'year'; from: 2000; to: 2005; minZoom: -1000; maxZoom: 999200; let index = index; let position = position" [attr.x1]="position | async" [attr.y1]="index * 40"   [attr.x2]="position | async" y2="800" stroke-width="5" [attr.stroke]="'#' + index + '0' + index + '0' + index + '0'"></line>
 
-{{ timeline.state.zoom.value }}
-{{ timeline.state.viewCenter.value }}
+    <!-- <line *timelineTick="'month'; from: 1; to: 3; minZoom: 0; maxZoom: 400; let index = index; let position = position"    [attr.x1]="position | async" y1="50"  [attr.x2]="position | async" y2="750" stroke-width="4" stroke="green"></line> -->
+    <!-- <line *timelineTick="'day'; from: 1; to: 2; minZoom: 200; maxZoom: 600; let index = index; let position = position"     [attr.x1]="position | async" y1="100" [attr.x2]="position | async" y2="700" stroke-width="3" stroke="blue"></line> -->
+    <!-- <line *timelineTick="'hour'; from: 0; to: 1; minZoom: 400; maxZoom: 999800; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line> -->
+    <!-- <line *timelineTick="'minute'; from: 0; to: 1; minZoom: 600; maxZoom: 999800; let index = index; let position = position"   [attr.x1]="position | async" y1="200" [attr.x2]="position | async" y2="600" stroke-width="1" stroke="gray"></line> -->
+
+    <line [attr.x1]="timeline.state.viewBounds.value.left" [attr.x2]="timeline.state.viewBounds.value.left" y1="0" y2="100%" stroke-width="3" stroke="red"/>
+    <line [attr.x1]="timeline.state.viewBounds.value.right" [attr.x2]="timeline.state.viewBounds.value.right" y1="0" y2="100%" stroke-width="3" stroke="red"/>
+    <line [attr.x1]="timeline.state.viewBounds.value.viewCenter" [attr.x2]="timeline.state.viewBounds.value.viewCenter" y1="0" y2="100%" stroke-width="8" stroke="darkgray"/>
+    <line [attr.x1]="timeline.state.viewCenter.value" [attr.x2]="timeline.state.viewCenter.value" y1="0" y2="100%" stroke-width="3" stroke="green"/>
+    
+    <line [attr.x1]="timeline.state.viewBounds.value.left" [attr.x2]="timeline.state.viewBounds.value.left + timeline.state.viewBounds.value.width" y1="0" y2="0" stroke-width="3" stroke="blue"/>
+    <line [attr.x1]="timeline.state.viewBounds.value.left" [attr.x2]="timeline.state.viewBounds.value.left + timeline.state.viewBounds.value.width" y1="100%" y2="100%" stroke-width="3" stroke="blue"/>
+</svg>
+<div style="text-align: center;">
+Zoom: {{ timeline.state.zoom.value }}<br/>
+ViewCenter: {{ timeline.state.viewCenter.value }}<br/>
+Mouse: {{x}}, {{y}}
+</div>
+
 <!--  -->
