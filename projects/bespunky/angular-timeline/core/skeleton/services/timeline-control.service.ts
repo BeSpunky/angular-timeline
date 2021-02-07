@@ -61,27 +61,31 @@ export class TimelineControlService extends TimelineControl
             filter(e => e.deltaY !== 0),
             // -delta reverses zooming so in is positive and out is negative
             map(e => [
-                Math.sign(-e.deltaY),
-                this.state.viewBounds.value.viewPortWidth,
+                -Math.sign(e.deltaY),
                 this.state.viewBounds.value.left,
                 this.state.viewCenter.value,
                 e.offsetX,
                 this.zoomDeltaFactor.value
             ]),
-            map(([zoomDirection, viewPortWidth, cameraX, viewCenter, mouseX, zoomDeltaFactor]) =>
+            map(([zoomDirection, cameraX, viewCenter, screenMouseX, zoomDeltaFactor]) =>
             {
                 // Movement factor is calculated based on the last size.
                 // Zoom factor is calculated based on the zoom level.
 
                 let factor = zoomDeltaFactor;
                 
-                if (zoomDirection > 0) factor = 1 / factor;
+                if (zoomDirection < 0) factor = 1 / factor;
 
-                const deltaMouseXToCenter = cameraX + mouseX - viewCenter;
-
-                const dx = deltaMouseXToCenter * (factor - 1);
-
-                this.state.addViewCenter(-dx);
+                /** The mouse position relative to the full drawing. */
+                const drawingMouseX   = cameraX + screenMouseX;
+                // What is the current distance between the mouse and the center before zooming?
+                const dxMouseToCenter = drawingMouseX - viewCenter;
+                // Where will the mouse be after zooming?
+                const newMouseX       = drawingMouseX * factor;
+                // Where should the new center be relative to the new mouse position after zooming?
+                const newViewCenter   = newMouseX - dxMouseToCenter;
+                
+                this.state.viewCenter.next(newViewCenter);
 
                 return zoomDirection;
             }),
