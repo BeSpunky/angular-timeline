@@ -1,25 +1,29 @@
+import { Key } from 'ts-key-enum';
 import { ClassProvider, ElementRef, Injectable } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
 import { BehaviorSubject, combineLatest, fromEvent, merge, Observable, OperatorFunction } from 'rxjs';
-import { filter, map, mergeMap, tap, windowToggle } from 'rxjs/operators';
+import { filter, map, mapTo, mergeMap, tap, windowToggle } from 'rxjs/operators';
 import { ViewBounds } from './timeline-renderer.service';
 import { TimelineState } from './timeline-state.service';
-
 export abstract class TimelineControl extends Destroyable
 {
-    abstract readonly zoomOnWheel    : BehaviorSubject<boolean>;
-    abstract readonly moveOnWheel    : BehaviorSubject<boolean>;
+    abstract readonly zoomOnWheel   : BehaviorSubject<boolean>;
+    abstract readonly moveOnWheel   : BehaviorSubject<boolean>;
+    abstract readonly zoomOnKeyboard: BehaviorSubject<boolean>;
+    abstract readonly moveOnKeyboard: BehaviorSubject<boolean>;
 }
 
 // TODO: Reverse deltas for RTL rendering
-
 @Injectable()
 export class TimelineControlService extends TimelineControl
 {
-    private readonly wheel: Observable<WheelEvent>;
+    private readonly wheel  : Observable<WheelEvent>;
+    private readonly keydown: Observable<KeyboardEvent>;
     
-    public readonly zoomOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveOnWheel    : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly zoomOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly moveOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly zoomOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly moveOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
 
     constructor(private state: TimelineState, private element: ElementRef)
     {
@@ -35,16 +39,24 @@ export class TimelineControlService extends TimelineControl
          * 2. State updated -> create new view bounds -> update state
          */
         
-        this.wheel = this.wheelFeed();
+        this.wheel   = this.wheelFeed();
+        this.keydown = this.keydownFeed();
 
         this.subscribe(this.zoomOnWheelFeed());
         this.subscribe(this.moveOnWheelFeed());
+        this.subscribe(this.zoomOnKeyboardFeed());
+        this.subscribe(this.moveOnKeyboardFeed());
         this.subscribe(this.viewBoundsFeed());
     }
 
     private wheelFeed(): Observable<WheelEvent>
     {
         return fromEvent<WheelEvent>(this.element.nativeElement, 'wheel');
+    }
+
+    private keydownFeed(): Observable<KeyboardEvent>
+    {
+        return fromEvent<KeyboardEvent>(document, 'keydown');
     }
 
     private zoomOnWheelFeed(): Observable<number>
@@ -57,7 +69,7 @@ export class TimelineControlService extends TimelineControl
             map(e => [-Math.sign(e.deltaY), e.offsetX]),
             // Movement factor is calculated based on the last size.
             // Zoom factor is calculated based on the zoom level.
-            map(([zoomDirection, screenMouseX]) => [zoomDirection, this.calculateViewCenterZoomedToMouse(zoomDirection, screenMouseX)]),
+            map(([zoomDirection, screenMouseX]) => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection, screenMouseX)]),
             tap(([zoomDirection, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
             map(([zoomDirection]) => zoomDirection),
             tap(zoomDirection => this.state.addZoom(zoomDirection)),
@@ -66,18 +78,46 @@ export class TimelineControlService extends TimelineControl
 
     private moveOnWheelFeed(): Observable<number>
     {
-        const wheel = this.wheel.pipe(
+        return this.wheel.pipe(
             this.useActivationSwitch(this.moveOnWheel),
-            mergeMap(wheel => wheel)
-        );
-
-        const hScroll = wheel.pipe(
+            mergeMap(wheel => wheel),
             filter(e => e.deltaX !== 0),
             map(e => Math.round(e.deltaX * this.state.moveDeltaFactor.value)),
+            tap(delta => this.state.addViewCenter(delta))
+        );
+    }
+
+    private zoomOnKeyboardFeed(): Observable<number>
+    {
+        const keydown = this.keydown.pipe(
+            this.useActivationSwitch(this.zoomOnKeyboard),
+            mergeMap(event => event),
+            tap(console.log)
         );
 
-        return merge(hScroll).pipe(
-            tap(delta => this.state.addViewCenter(delta))
+        const zoomIn  = keydown.pipe(filter(e => e.key === Key.ArrowUp  ), mapTo(1));
+        const zoomOut = keydown.pipe(filter(e => e.key === Key.ArrowDown), mapTo(-1));
+
+        return merge(zoomIn, zoomOut).pipe(
+            map(zoomDirection => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection)]),
+            tap(([zoomDirection, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
+            map(([zoomDirection]) => zoomDirection),
+            tap(zoomDirection => this.state.addZoom(zoomDirection))
+        );
+    }    
+
+    private moveOnKeyboardFeed(): Observable<number>
+    {
+        const keydown = this.keydown.pipe(
+            this.useActivationSwitch(this.moveOnKeyboard),
+            mergeMap(event => event)
+        );
+
+        const moveRight = keydown.pipe(filter(e => e.key === Key.ArrowLeft ), map(e => -this.getKeyboardModifiedFactor(e)));
+        const moveLeft  = keydown.pipe(filter(e => e.key === Key.ArrowRight), map(e => this.getKeyboardModifiedFactor(e)));
+
+        return merge(moveLeft, moveRight).pipe(
+            tap(movement => this.state.addViewCenter(movement * 5)) // TODO: Replace 5 with configurable factor subject
         );
     }
     
@@ -97,7 +137,7 @@ export class TimelineControlService extends TimelineControl
         return windowToggle<T, boolean>(on, () => off);
     }
     
-    private calculateViewCenterZoomedToMouse(zoomDirection: number, screenMouseX: number): number
+    private calculateViewCenterZoomedToPoint(zoomDirection: number, zoomedScreenX: number = this.state.viewPortWidth.value / 2): number
     {
         /** The idea is to:
          * 1. Calculate the current distance between the mouse and the viewCenter, so the same distance could be applied later-on.
@@ -117,13 +157,25 @@ export class TimelineControlService extends TimelineControl
         const viewCenter = this.state.viewCenter.value;
 
         /** The mouse position relative to the full drawing. */
-        const drawingMouseX   = cameraX + screenMouseX;
+        const drawingMouseX   = cameraX + zoomedScreenX;
         /** The distance between the mouse and the center before zooming. This should be kept after zoom. */
         const dxMouseToCenter = drawingMouseX - viewCenter;
         /** The mouse position after zooming. */
         const newMouseX       = drawingMouseX * factor;
         // The new center be relative to the new mouse position after zooming?
         return newMouseX - dxMouseToCenter;
+    }
+
+    // TODO: Refactor to make configurable factors as subjects
+    private getKeyboardModifiedFactor(event: KeyboardEvent): number
+    {
+        let factor = 1;
+
+        if (event.altKey  ) factor *= 0.5;
+        if (event.ctrlKey ) factor *= 1.5;
+        if (event.shiftKey) factor *= 2;
+
+        return factor;
     }
 }
 
