@@ -128,5 +128,4 @@ export class TimelineTickDirective implements TimelineTick
     {
         return this.minZoom.value <= zoom && zoom <= this.maxZoom.value;
     }
-
 }
