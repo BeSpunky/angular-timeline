@@ -2,7 +2,7 @@ import { ClassProvider, ElementRef, Injectable } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
 import { combineLatest, fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
-import { TimelineTick } from '../directives/timeline-tick.directive';
+import { TickItem, TimelineTick } from '../directives/timeline-tick.directive';
 import { CreatedView, TimelineState } from './timeline-state.service';
 import { TimelineToolsService } from './timeline-tools.service';
 
@@ -10,10 +10,11 @@ export interface TickContext
 {
     state    : TimelineState;
     tickLevel: number;
-    value    : any;
     index    : number;
-    width    : Observable<number>;
-    position : Observable<number>;
+    width    : number;
+    position : number;
+    label    : string;
+    value    : any;
 }
 
 export class ViewBounds
@@ -49,7 +50,7 @@ export class ViewBounds
 
 export abstract class TimelineRenderer extends Destroyable
 {
-    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void;
+    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: TickItem[]): void;
     abstract unrenderTicks(tickLevel: number): void;
 }
 
@@ -79,17 +80,17 @@ export class TimelineRendererService extends TimelineRenderer
     }
     
     // TODO: Aggregate changes instead of clearing and recreating views
-    public renderTicks(tick: TimelineTick, tickLevel: number, items: any[], duplicateCount: number): void
+    public renderTicks(tick: TimelineTick, tickLevel: number, renderedItems: TickItem[]): void
     {
         // If already rendered, do not render again
-        if (this.state.ticksInView[tickLevel]) return;
+        if (this.state.ticksInView[tickLevel]) this.unrenderTicks(tickLevel);
         
-        const createdViews = this.tools.duplicateMap(items, duplicateCount, (item, index) =>
+        const createdViews = renderedItems.map(item =>
         {
-            const context = this.createViewContext(tick, item, tickLevel, index);
+            const context = this.createViewContext(item, tickLevel);
             const view    = tick.view!.createEmbeddedView(tick.template, context);
             
-            return { item, index, context, view } as CreatedView;
+            return { item, context, view } as CreatedView;
         });
 
         // Update state with created views
@@ -105,15 +106,12 @@ export class TimelineRendererService extends TimelineRenderer
         delete this.state.ticksInView[tickLevel];
     }
 
-    private createViewContext(tick: TimelineTick, value: any, tickLevel: number, index: number): any
+    private createViewContext(item: TickItem, tickLevel: number): any
     {
         const context = {
-            state: this.state,
+            ...item,
             tickLevel,
-            value,
-            index,
-            width   : tick.width,
-            position: tick.positionFeed(index)
+            state: this.state
         } as TickContext;
 
         return {
