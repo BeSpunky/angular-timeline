@@ -49,7 +49,7 @@ export interface TimelineTick
 export class TimelineTickDirective implements TimelineTick
 {
     public readonly id     : BehaviorSubject<string>         = new BehaviorSubject('');
-    public readonly items  : BehaviorSubject<number | any[]> = new BehaviorSubject(1 as number | any[]);
+    public readonly items  : BehaviorSubject<number | any[]> = new BehaviorSubject(0 as number | any[]);
     public readonly minZoom: BehaviorSubject<number>         = new BehaviorSubject(0);
     public readonly maxZoom: BehaviorSubject<number>         = new BehaviorSubject(100);
     public readonly label  : BehaviorSubject<TickLabelFn>    = new BehaviorSubject((index, value) => value);
@@ -108,36 +108,67 @@ export class TimelineTickDirective implements TimelineTick
     private renderedItemsFeed(): Observable<TickItem[]>
     {
         // TODO: Add a virtualization switch to allow rendering all items always
-        return combineLatest([this.items, this.width, this.label, this.state.viewBounds, this.state.bufferedTicks]).pipe(
-            map(([items, tickWidth, label, viewBounds, bufferedTicks]) =>
+        return combineLatest([this.parent, this.items, this.width, this.label, this.state.viewBounds, this.state.bufferedTicks]).pipe(
+            map(([parent, items, tickWidth, label, viewBounds, bufferedTicks]) =>
             {
                 const closestLeftTickIndex  = Math.floor(viewBounds.left / tickWidth);
                 const closestRightTickIndex = Math.ceil(viewBounds.right / tickWidth);
     
-                const startTickIndex = closestLeftTickIndex  - bufferedTicks;
+                const startTickIndex = closestLeftTickIndex - bufferedTicks;
                 const endTickIndex   = closestRightTickIndex + bufferedTicks;
                 
-                if (items)
-                {
-                    const values = items instanceof Array ? items : this.tools.range(0, items);
-                    
-                    return this.tools.range(startTickIndex, endTickIndex).map(tickIndex =>
-                    {
-                        const valueRelativeIndex = tickIndex % values.length;
-                        const valueIndex         = tickIndex > 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;
-                        const value              = values[valueIndex];
-                        const itemLabel          = label(tickIndex, value);
-                        
-                        return new TickItem(tickIndex, tickWidth, itemLabel, value);
-                    });
-                }
-                else
-                {
-                    // items is undefined
-                    throw 'Should not have reached here';
-                }
+                let indexes: number[];
+                let values : any[];
+                let calcValueIndex: (values: any[], tickIndex: number, renderIndex: number) => number;
 
-                return [];
+                if (parent)
+                {
+                    if (items)
+                    {
+                        values = items instanceof Array ? items : this.tools.range(0, items);
+                        indexes = this.tools.range(startTickIndex, endTickIndex + 1);
+
+                        calcValueIndex = (values: any[], tickIndex: number, renderIndex: number) =>
+                        {
+                            const valueRelativeIndex = tickIndex % values.length;
+                            
+                            return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;
+                        };
+                    }
+                    else
+                        throw new Error(`No items specified for the ${this.id} tick`);
+                }
+                else // No parent, this is the top level tick
+                {
+                    if (items)
+                    {
+                        values = items instanceof Array ? items : this.tools.range(0, items);
+                        indexes = this.tools.range(0, values.length);
+
+                        calcValueIndex = (values: any[], tickIndex: number, renderIndex: number) =>
+                        {
+                            const valueRelativeIndex = tickIndex % values.length;
+                            
+                            return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;
+                        };
+                    }
+                    else
+                    {
+                        indexes = this.tools.range(startTickIndex, endTickIndex + 1);
+                        values = [...indexes];
+
+                        calcValueIndex = (values: any[], tickIndex: number, renderIndex: number) => renderIndex;
+                    }
+                }
+                
+                return indexes.map((tickIndex, renderIndex) =>
+                {
+                    const valueIndex         = calcValueIndex(values, tickIndex, renderIndex);
+                    const value              = values[valueIndex];
+                    const itemLabel          = label(tickIndex, value);
+                
+                    return new TickItem(tickIndex, tickWidth, itemLabel, value);
+                });
             })
         );
     }

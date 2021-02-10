@@ -21,7 +21,7 @@
         {
             "label": "Sleep",
             "type": "shell",
-            "command": "ping 127.0.0.1 -n 17 > nul",
+            "command": "ping 127.0.0.1 -n 20 > nul",
             "presentation": {
                 "echo": false,
                 "reveal": "silent",
