@@ -7,10 +7,13 @@
         <text [attr.x]="position | async" y="400" dx="20" font-size="20">{{value | async}}</text>
     </g>
 
-    <!-- <line *timelineTick="'month'; items: 2; minZoom: 10; maxZoom: 400; let index = index; let position = position"  
-          [attr.x1]="position | async" y1="50"
-          [attr.x2]="position | async" y2="750"
-          stroke-width="4" stroke="green"></line> -->
+    <g *timelineTick="'month'; items: ['Jan', 'Feb', 'Mar']; minZoom: 10; maxZoom: 400; let index = index; let position = position; let value = value">
+        <line [attr.x1]="position | async" y1="50"
+              [attr.x2]="position | async" y2="750"
+              stroke-width="4" stroke="green"></line>
+
+        <text [attr.x]="position | async" y="300" dx="10" font-size="20">{{value | async}}</text>
+    </g>
 
     <!-- <line *timelineTick="'day'; from: 1; to: 2; minZoom: 200; maxZoom: 600; let index = index; let position = position"     [attr.x1]="position | async" y1="100" [attr.x2]="position | async" y2="700" stroke-width="3" stroke="blue"></line> -->
     <!-- <line *timelineTick="'hour'; from: 0; to: 1; minZoom: 400; maxZoom: 999800; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line> -->

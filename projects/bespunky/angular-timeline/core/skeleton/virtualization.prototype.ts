@@ -1,17 +1,16 @@
 import { TickItem } from './directives/timeline-tick.directive';
 import { ViewBounds } from './services/timeline-renderer.service';
 
-const parent        = null;
-const tickWidth     = 12000;
-const viewCenter    = -3500;
+const parent        = 7;
+const tickWidth     = 500;
+const viewCenter    = 0;
 const bufferedTicks = 1;
-const items: number | any[] = 0;
+const items: number | any[] = 2;
 
-const id            = 'years';
+const id            = 'months';
 const zoom          = 1;
 const viewBounds    = new ViewBounds(1000, 500, zoom, viewCenter);
 
-// [parent, items, tickWidth, label, viewBounds, bufferedTicks]) =>
 function renderedItemsFeed(): TickItem[]
 {
     const closestLeftTickIndex = Math.floor(viewBounds.left / tickWidth);/*?*/
@@ -35,7 +34,7 @@ function renderedItemsFeed(): TickItem[]
             {
                 const valueRelativeIndex = tickIndex % values.length;/*?*/
                             
-                return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;/*?*/
+                return valueRelativeIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex;/*?*/
             };
         }
         else
@@ -52,7 +51,7 @@ function renderedItemsFeed(): TickItem[]
             {
                 const valueRelativeIndex = tickIndex % values.length;/*?*/
                             
-                return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;/*?*/
+                return valueRelativeIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex;/*?*/
             };
         }
         else
@@ -63,7 +62,7 @@ function renderedItemsFeed(): TickItem[]
             calcValueIndex = (values: any[], tickIndex: number, renderIndex: number) => renderIndex/*?*/;
         }
     }
-                
+
     return indexes.map((tickIndex, renderIndex) =>
     {
         const valueIndex = calcValueIndex(values, tickIndex, renderIndex);/*?*/

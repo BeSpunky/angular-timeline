@@ -132,7 +132,7 @@ export class TimelineTickDirective implements TimelineTick
                         {
                             const valueRelativeIndex = tickIndex % values.length;
                             
-                            return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;
+                            return valueRelativeIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex;
                         };
                     }
                     else
@@ -149,7 +149,7 @@ export class TimelineTickDirective implements TimelineTick
                         {
                             const valueRelativeIndex = tickIndex % values.length;
                             
-                            return tickIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex - 1;
+                            return valueRelativeIndex >= 0 ? valueRelativeIndex : values.length + valueRelativeIndex;
                         };
                     }
                     else
