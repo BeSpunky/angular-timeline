@@ -64,7 +64,6 @@ export class TimelineControlService extends TimelineControl
     {
         return this.wheel.pipe(
             useActivationSwitch(this.zoomOnWheel),
-            mergeMap(wheel => wheel),
             filter(e => e.deltaY !== 0),
             // -delta reverses zooming so in is positive and out is negative
             map(e => [-Math.sign(e.deltaY), e.offsetX]),
@@ -81,7 +80,6 @@ export class TimelineControlService extends TimelineControl
     {
         return this.wheel.pipe(
             useActivationSwitch(this.moveOnWheel),
-            mergeMap(wheel => wheel),
             filter(e => e.deltaX !== 0),
             map(e => Math.round(e.deltaX * this.state.moveDeltaFactor.value)),
             tap(delta => this.state.addViewCenter(delta))
@@ -92,7 +90,6 @@ export class TimelineControlService extends TimelineControl
     {
         const keydown = this.keydown.pipe(
             useActivationSwitch(this.zoomOnKeyboard),
-            mergeMap(event => event),
             tap(console.log)
         );
 
@@ -110,8 +107,7 @@ export class TimelineControlService extends TimelineControl
     private moveOnKeyboardFeed(): Observable<number>
     {
         const keydown = this.keydown.pipe(
-            useActivationSwitch(this.moveOnKeyboard),
-            mergeMap(event => event)
+            useActivationSwitch(this.moveOnKeyboard)
         );
 
         const moveRight = keydown.pipe(filter(e => e.key === Key.ArrowLeft ), map(e => -this.getKeyboardModifiedFactor(e)));
