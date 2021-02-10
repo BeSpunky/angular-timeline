@@ -1,5 +1,5 @@
 <svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="500" #timeline="timeline" (mousemove)="ddd($event)">
-    <g *timelineTick="'year'; minZoom: -1000; maxZoom: 100; let index = index; let position = position; let value = value">
+    <g *timelineTick="'year'; minZoom: -1000; maxZoom: 250; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="0"
               [attr.x2]="position | async" y2="800"
               stroke-width="5" stroke="black"></line>
@@ -7,7 +7,7 @@
         <text [attr.x]="position | async" y="400" dx="20" font-size="20">{{value | async}}</text>
     </g>
 
-    <g *timelineTick="'month'; items: ['Jan', 'Feb', 'Mar']; minZoom: 10; maxZoom: 400; let index = index; let position = position; let value = value">
+    <g *timelineTick="'month'; items: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; minZoom: 10; maxZoom: 400; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="50"
               [attr.x2]="position | async" y2="750"
               stroke-width="4" stroke="green"></line>
