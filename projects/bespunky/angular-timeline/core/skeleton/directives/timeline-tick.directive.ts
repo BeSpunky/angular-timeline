@@ -123,6 +123,9 @@ export class TimelineTickDirective implements TimelineTick
 
                 if (parent)
                 {
+                    // TODO: If the parent sets fixed items (not infinite), limit indexes for the child. Otherwise,
+                    // The parent will have fixed ticks but the child will have infinite ticks.
+                    
                     if (items)
                     {
                         values = items instanceof Array ? items : this.tools.range(0, items);
