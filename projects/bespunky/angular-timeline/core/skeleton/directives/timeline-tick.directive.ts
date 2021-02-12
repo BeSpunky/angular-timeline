@@ -3,6 +3,7 @@ import { Observable, BehaviorSubject, combineLatest, merge, of, zip, asyncSchedu
 import { debounce, debounceTime, distinctUntilChanged, map, mergeMap, multicast, observeOn, pluck, publish, refCount, shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { useActivationSwitch } from '../rxjs/activation-switch';
 import { debug } from '../rxjs/debug';
+import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
@@ -110,8 +111,7 @@ export class TimelineTickDirective implements TimelineTick
     private shouldRenderFeed(): Observable<boolean>
     {
         return combineLatest([this.state.zoom, this.minZoom, this.maxZoom]).pipe(
-        // return merge(this.state.debouncedZoom(180), this.minZoom, this.maxZoom).pipe(
-            map(([zoom, minZoom, maxZoom]) => this.tickMatchesZoom(zoom, minZoom, maxZoom)),
+            valueInRange(),
             distinctUntilChanged()
         );
     }
@@ -190,11 +190,5 @@ export class TimelineTickDirective implements TimelineTick
                 });
             })
         );
-    }
-
-    // TODO: Move to tools
-    public tickMatchesZoom(zoom: number, minZoom: number, maxZoom: number): boolean
-    {
-        return minZoom <= zoom && zoom <= maxZoom;
     }
 }
