@@ -1,6 +1,7 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { Observable, BehaviorSubject, combineLatest, merge, of, zip } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, merge, of, zip, asyncScheduler, animationFrameScheduler, queueScheduler } from 'rxjs';
 import { map, mergeMap, pluck, switchMap, take, tap } from 'rxjs/operators';
+import { useActivationSwitch } from '../rxjs/activation-switch';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
@@ -112,6 +113,12 @@ export class TimelineTickDirective implements TimelineTick
     {
         // TODO: Add a virtualization switch to allow rendering all items always
         return combineLatest([this.parent, this.items, this.width, this.label, this.state.viewBounds, this.state.bufferedTicks]).pipe(
+            // As item generation depends on multiple subjects, generation might be triggered multiple times for the same change.
+            // When zooming, for example, viewBounds + width are changed causing at least 2 notifications.
+            // The animationFrameScheduler calculates changes just before next browser content repaint, which prevents flickering and hangs,
+            // creating a smoother animation.
+            observeOn(animationFrameScheduler),
+            useActivationSwitch(this.shouldRender),
             map(([parent, items, tickWidth, label, viewBounds, bufferedTicks]) =>
             {
                 const closestLeftTickIndex  = Math.floor(viewBounds.left / tickWidth);
