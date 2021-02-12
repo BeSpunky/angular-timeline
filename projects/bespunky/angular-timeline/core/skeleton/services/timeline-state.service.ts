@@ -37,7 +37,7 @@ export class TimelineStateService extends TimelineState
     public readonly viewPortWidth  : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewPortHeight : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly zoom           : BehaviorSubject<number>     = new BehaviorSubject(1);
-    public readonly zoomDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(1.01);
+    public readonly zoomDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(1.06);
     public readonly baseTickSize   : BehaviorSubject<number>     = new BehaviorSubject(300);
     public readonly bufferedTicks  : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewCenter     : BehaviorSubject<number>     = new BehaviorSubject(0);
