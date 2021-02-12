@@ -1,7 +1,9 @@
 import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { Observable } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { useActivationSwitch } from '../rxjs/activation-switch';
+import { debug } from '../rxjs/debug';
 import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
 import { TimelineRenderer, TimelineRendererProvider } from '../services/timeline-renderer.service';
 import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
@@ -55,13 +57,17 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     private observeTick(tick: TimelineTick, tickLevel: number): void
     {
         // If ticks were changes (e.g. an ngIf or ngFor creates them) then takeUntil will unsubscribe from the render observable
-        this.subscribe(tick.render, ([renderedItems, shouldRender]) => this.updateTicks(tick, tickLevel, renderedItems, shouldRender));
-    }
+        const render = tick.renderedItems.pipe(
+            takeUntil(this.ticks.changes)
+        );
 
-    private updateTicks(tick: TimelineTick, tickLevel: number, renderedItems: TickItem[], shouldRender: boolean): void
-    {
-        shouldRender ? this.renderer.renderTicks(tick, tickLevel, renderedItems) 
-                     : this.renderer.unrenderTicks(tickLevel);
+        const unrender = tick.shouldRender.pipe(
+            takeUntil(this.ticks.changes),
+            filter(shouldRender => !shouldRender)
+        );
+
+        this.subscribe(render  , renderedItems => this.renderer.renderTicks  (tick, tickLevel, renderedItems));
+        this.subscribe(unrender, _             => this.renderer.unrenderTicks(tickLevel));
     }
 
     private initTickHierarchy(ticks: TimelineTick[], index: number): void

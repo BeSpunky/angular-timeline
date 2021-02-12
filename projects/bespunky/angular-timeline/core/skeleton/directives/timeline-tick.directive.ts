@@ -1,7 +1,8 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable, BehaviorSubject, combineLatest, merge, of, zip, asyncScheduler, animationFrameScheduler, queueScheduler } from 'rxjs';
-import { map, mergeMap, pluck, switchMap, take, tap } from 'rxjs/operators';
+import { debounce, debounceTime, distinctUntilChanged, map, mergeMap, multicast, observeOn, pluck, publish, refCount, shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { useActivationSwitch } from '../rxjs/activation-switch';
+import { debug } from '../rxjs/debug';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineToolsService } from '../services/timeline-tools.service';
 
@@ -37,7 +38,6 @@ export interface TimelineTick
     readonly width         : Observable<number>;
     readonly renderedItems : Observable<TickItem[]>;
     readonly shouldRender  : Observable<boolean>;
-    readonly render        : Observable<[TickItem[], boolean]>;
     
     readonly parent: BehaviorSubject<TimelineTick | null>;
     readonly child : BehaviorSubject<TimelineTick | null>;
@@ -55,11 +55,10 @@ export class TimelineTickDirective implements TimelineTick
     public readonly maxZoom: BehaviorSubject<number>         = new BehaviorSubject(100);
     public readonly label  : BehaviorSubject<TickLabelFn>    = new BehaviorSubject((index, value) => value);
     
-    public readonly itemCount     : Observable<number>;
-    public readonly renderedItems : Observable<TickItem[]>;
-    public readonly width         : Observable<number>;
-    public readonly shouldRender  : Observable<boolean>;
-    public readonly render        : Observable<[TickItem[], boolean]>;
+    public readonly itemCount    : Observable<number>;
+    public readonly renderedItems: Observable<TickItem[]>;
+    public readonly width        : Observable<number>;
+    public readonly shouldRender : Observable<boolean>;
 
     public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
     public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
@@ -71,11 +70,10 @@ export class TimelineTickDirective implements TimelineTick
         private readonly tools   : TimelineToolsService
     )
     {
-        this.itemCount      = this.itemCountFeed();
-        this.width          = this.widthFeed();
-        this.renderedItems  = this.renderedItemsFeed();
-        this.shouldRender   = this.shouldRenderFeed();
-        this.render         = this.renderFeed();
+        this.itemCount     = this.itemCountFeed();
+        this.width         = this.widthFeed();
+        this.shouldRender  = this.shouldRenderFeed();
+        this.renderedItems = this.renderedItemsFeed();
     }
 
     @Input() public set timelineTick       (value: string)         { this.id.next(value); }
@@ -85,8 +83,8 @@ export class TimelineTickDirective implements TimelineTick
     @Input() public set timelineTickLabel  (value: TickLabelFn)    { this.label.next(value); }
 
     // TODO: What's the point in having this separated if `this.items` can be the item count itself?
-    // Consider separating `this.items` and allowing only an array of items, while `this.itemCount` will be set by the user
-    // as an alternative to `this.items`.
+    // ? Consider separating `this.items` and allowing only an array of items, while `this.itemCount` will be set by the user
+    // ? as an alternative to `this.items`.
     private itemCountFeed(): Observable<number>
     {
         return this.items.pipe(map(items => items instanceof Array ? items.length : items));
@@ -109,9 +107,17 @@ export class TimelineTickDirective implements TimelineTick
         );
     }
 
+    private shouldRenderFeed(): Observable<boolean>
+    {
+        return combineLatest([this.state.zoom, this.minZoom, this.maxZoom]).pipe(
+        // return merge(this.state.debouncedZoom(180), this.minZoom, this.maxZoom).pipe(
+            map(([zoom, minZoom, maxZoom]) => this.tickMatchesZoom(zoom, minZoom, maxZoom)),
+            distinctUntilChanged()
+        );
+    }
+
     private renderedItemsFeed(): Observable<TickItem[]>
     {
-        // TODO: Add a virtualization switch to allow rendering all items always
         return combineLatest([this.parent, this.items, this.width, this.label, this.state.viewBounds, this.state.bufferedTicks]).pipe(
             // As item generation depends on multiple subjects, generation might be triggered multiple times for the same change.
             // When zooming, for example, viewBounds + width are changed causing at least 2 notifications.
@@ -121,21 +127,21 @@ export class TimelineTickDirective implements TimelineTick
             useActivationSwitch(this.shouldRender),
             map(([parent, items, tickWidth, label, viewBounds, bufferedTicks]) =>
             {
-                const closestLeftTickIndex  = Math.floor(viewBounds.left / tickWidth);
-                const closestRightTickIndex = Math.ceil(viewBounds.right / tickWidth);
+                const closestLeftTickIndex  = Math.floor(viewBounds.left  / tickWidth);
+                const closestRightTickIndex = Math.ceil (viewBounds.right / tickWidth);
     
-                const startTickIndex = closestLeftTickIndex - bufferedTicks;
+                const startTickIndex = closestLeftTickIndex  - bufferedTicks;
                 const endTickIndex   = closestRightTickIndex + bufferedTicks;
                 
-                let indexes: number[];
-                let values : any[];
+                let indexes       : number[];
+                let values        : any[];
                 let calcValueIndex: (values: any[], tickIndex: number, renderIndex: number) => number;
 
                 if (parent)
                 {
                     // TODO: If the parent sets fixed items (not infinite), limit indexes for the child. Otherwise,
                     // The parent will have fixed ticks but the child will have infinite ticks.
-                    
+
                     if (items)
                     {
                         values = items instanceof Array ? items : this.tools.range(0, items);
@@ -176,9 +182,9 @@ export class TimelineTickDirective implements TimelineTick
                 
                 return indexes.map((tickIndex, renderIndex) =>
                 {
-                    const valueIndex         = calcValueIndex(values, tickIndex, renderIndex);
-                    const value              = values[valueIndex];
-                    const itemLabel          = label(tickIndex, value);
+                    const valueIndex = calcValueIndex(values, tickIndex, renderIndex);
+                    const value      = values[valueIndex];
+                    const itemLabel  = label(tickIndex, value);
                 
                     return new TickItem(tickIndex, tickWidth, itemLabel, value);
                 });
@@ -186,22 +192,9 @@ export class TimelineTickDirective implements TimelineTick
         );
     }
 
-    private shouldRenderFeed(): Observable<boolean>
-    {
-        return merge(this.state.zoom, this.minZoom, this.maxZoom).pipe(
-        // return merge(this.state.debouncedZoom(180), this.minZoom, this.maxZoom).pipe(
-            map(_ => this.tickMatchesZoom(this.state.zoom.value))
-        );
-    }
-    
-    private renderFeed(): Observable<[TickItem[], boolean]>
-    {
-        return combineLatest([this.renderedItems, this.shouldRender]);
-    }
-
     // TODO: Move to tools
-    public tickMatchesZoom(zoom: number): boolean
+    public tickMatchesZoom(zoom: number, minZoom: number, maxZoom: number): boolean
     {
-        return this.minZoom.value <= zoom && zoom <= this.maxZoom.value;
+        return minZoom <= zoom && zoom <= maxZoom;
     }
 }
