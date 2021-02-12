@@ -1,5 +1,5 @@
 <svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="500" #timeline="timeline" (mousemove)="ddd($event)">
-    <g *timelineTick="'year'; minZoom: -1000; maxZoom: 250; let position = position; let value = value">
+    <g *timelineTick="'year'; minZoom: -100; maxZoom: 30; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="0"
               [attr.x2]="position | async" y2="800"
               stroke-width="5" stroke="black"></line>
@@ -7,7 +7,7 @@
         <text [attr.x]="position | async" y="400" dx="20" font-size="20">{{value | async}}</text>
     </g>
 
-    <g *timelineTick="'month'; items: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; minZoom: 10; maxZoom: 400; let position = position; let value = value">
+    <g *timelineTick="'month'; minZoom: 15; maxZoom: 60; items: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="50"
               [attr.x2]="position | async" y2="750"
               stroke-width="4" stroke="green"></line>
@@ -15,13 +15,13 @@
         <text [attr.x]="position | async" y="300" dx="10" font-size="20">{{value | async}}</text>
     </g>
 
-    <!-- <g *timelineTick="'day'; items: 31; minZoom: 200; maxZoom: 600; let position = position; let value = value">
+    <g *timelineTick="'day'; minZoom: 30; maxZoom: 600; items: 31; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="100"
               [attr.x2]="position | async" y2="700"
               stroke-width="3" stroke="blue"></line>
 
         <text [attr.x]="position | async" y="280" dx="10" font-size="20">{{value | async}}</text>
-    </g> -->
+    </g>
 
     <!-- <line *timelineTick="'hour'; from: 0; to: 1; minZoom: 400; maxZoom: 999800; let index = index; let position = position"     [attr.x1]="position | async" y1="150" [attr.x2]="position | async" y2="650" stroke-width="2" stroke="red"></line> -->
     <!-- <line *timelineTick="'minute'; from: 0; to: 1; minZoom: 600; maxZoom: 999800; let index = index; let position = position"   [attr.x1]="position | async" y1="200" [attr.x2]="position | async" y2="600" stroke-width="1" stroke="gray"></line> -->
