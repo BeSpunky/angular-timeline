@@ -5,6 +5,7 @@ import { BehaviorSubject, combineLatest, fromEvent, merge, Observable, OperatorF
 import { filter, map, mapTo, mergeMap, tap, windowToggle } from 'rxjs/operators';
 import { ViewBounds } from './timeline-renderer.service';
 import { TimelineState } from './timeline-state.service';
+import { useActivationSwitch } from '../rxjs/activation-switch';
 export abstract class TimelineControl extends Destroyable
 {
     abstract readonly zoomOnWheel   : BehaviorSubject<boolean>;
@@ -62,8 +63,7 @@ export class TimelineControlService extends TimelineControl
     private zoomOnWheelFeed(): Observable<number>
     {
         return this.wheel.pipe(
-            this.useActivationSwitch(this.zoomOnWheel),
-            mergeMap(wheel => wheel),
+            useActivationSwitch(this.zoomOnWheel),
             filter(e => e.deltaY !== 0),
             // -delta reverses zooming so in is positive and out is negative
             map(e => [-Math.sign(e.deltaY), e.offsetX]),
@@ -79,8 +79,7 @@ export class TimelineControlService extends TimelineControl
     private moveOnWheelFeed(): Observable<number>
     {
         return this.wheel.pipe(
-            this.useActivationSwitch(this.moveOnWheel),
-            mergeMap(wheel => wheel),
+            useActivationSwitch(this.moveOnWheel),
             filter(e => e.deltaX !== 0),
             map(e => Math.round(e.deltaX * this.state.moveDeltaFactor.value)),
             tap(delta => this.state.addViewCenter(delta))
@@ -90,8 +89,7 @@ export class TimelineControlService extends TimelineControl
     private zoomOnKeyboardFeed(): Observable<number>
     {
         const keydown = this.keydown.pipe(
-            this.useActivationSwitch(this.zoomOnKeyboard),
-            mergeMap(event => event),
+            useActivationSwitch(this.zoomOnKeyboard),
             tap(console.log)
         );
 
@@ -109,8 +107,7 @@ export class TimelineControlService extends TimelineControl
     private moveOnKeyboardFeed(): Observable<number>
     {
         const keydown = this.keydown.pipe(
-            this.useActivationSwitch(this.moveOnKeyboard),
-            mergeMap(event => event)
+            useActivationSwitch(this.moveOnKeyboard)
         );
 
         const moveRight = keydown.pipe(filter(e => e.key === Key.ArrowLeft ), map(e => -this.getKeyboardModifiedFactor(e)));
@@ -127,14 +124,6 @@ export class TimelineControlService extends TimelineControl
             map(([viewPortWidth, viewPortHeight, zoom, viewCenter]) => new ViewBounds(viewPortWidth, viewPortHeight, zoom, viewCenter)),
             tap(viewBounds => this.state.viewBounds.next(viewBounds))
         );
-    }
-
-    private useActivationSwitch<T>(observable: Observable<boolean>): OperatorFunction<T, Observable<T>>
-    {
-        const on  = observable.pipe(filter(activate => activate));
-        const off = observable.pipe(filter(activate => !activate));
-        
-        return windowToggle<T, boolean>(on, () => off);
     }
     
     private calculateViewCenterZoomedToPoint(zoomDirection: number, zoomedScreenX: number = this.state.viewPortWidth.value / 2): number

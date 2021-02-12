@@ -1,13 +1,13 @@
 import { ClassProvider, Injectable, ViewRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ViewBounds } from './timeline-renderer.service';
+import { TickItem } from '../directives/timeline-tick.directive';
+import { TickContext, ViewBounds } from './timeline-renderer.service';
 
-export interface CreatedView
+export interface CreatedTickView
 {
-    item   : any;
-    index  : number;
-    context: any;
+    item   : TickItem;
+    context: TickContext;
     view   : ViewRef;
 }
     
@@ -18,11 +18,12 @@ export abstract class TimelineState
     abstract readonly zoom           : BehaviorSubject<number>;
     abstract readonly zoomDeltaFactor: BehaviorSubject<number>;
     abstract readonly baseTickSize   : BehaviorSubject<number>;
+    abstract readonly bufferedTicks  : BehaviorSubject<number>;
     abstract readonly viewCenter     : BehaviorSubject<number>;
     abstract readonly viewBounds     : BehaviorSubject<ViewBounds>;
     abstract readonly moveDeltaFactor: BehaviorSubject<number>;
 
-    abstract readonly ticksInView: { [tickLevel: number]: CreatedView[] };
+    abstract readonly ticksInView: { [tickLevel: number]: CreatedTickView[] };
 
     abstract debouncedZoom(dueTime?: number): Observable<number>;
 
@@ -36,13 +37,14 @@ export class TimelineStateService extends TimelineState
     public readonly viewPortWidth  : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewPortHeight : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly zoom           : BehaviorSubject<number>     = new BehaviorSubject(1);
-    public readonly zoomDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(1.01);
+    public readonly zoomDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(1.06);
     public readonly baseTickSize   : BehaviorSubject<number>     = new BehaviorSubject(300);
+    public readonly bufferedTicks  : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewCenter     : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewBounds     : BehaviorSubject<ViewBounds> = new BehaviorSubject(new ViewBounds(0, 0, 0, 0));
     public readonly moveDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(0.2);
     
-    public readonly ticksInView: { [tickLevel: number]: CreatedView[] } = { };
+    public readonly ticksInView: { [tickLevel: number]: CreatedTickView[] } = { };
 
     constructor()
     {
