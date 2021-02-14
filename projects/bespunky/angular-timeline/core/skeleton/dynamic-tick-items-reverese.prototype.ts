@@ -1,4 +1,4 @@
-import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfInterval, subYears, differenceInMinutes, addMinutes } from 'date-fns';
+import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfInterval, subYears, differenceInMinutes, addMinutes, startOfYear, startOfMonth, startOfDay, startOfHour, startOfMinute, startOfSecond } from 'date-fns';
 
 (function dynamicTickItemsReverse()
 {
@@ -60,31 +60,7 @@ import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfI
     
     positionToDate(0);/*?*/
     
-    const closestMinuteDaysFromZero = (position: number) =>
-    {
-        const date = positionToDate(position);
-        return dateToPosition(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes());
-    };
-    const closestHourDaysFromZero   = (position: number) =>
-    {
-        const date = positionToDate(position);
-        return dateToPosition(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
-    };
-    const closestDayDaysFromZero    = (position: number) =>
-    {
-        const date = positionToDate(position);
-        return dateToPosition(date.getFullYear(), date.getMonth(), date.getDate());
-    };
-    const closestMonthDaysFromZero  = (position: number) =>
-    {
-        const date = positionToDate(position);
-        return dateToPosition(date.getFullYear(), date.getMonth());
-    };
-    const closestYearDaysFromZero   = (position: number) =>
-    {
-        const date = positionToDate(position);
-        return dateToPosition(date.getFullYear());
-    };
+    const closestDateDaysFromZero = (position: number, roundDate: (date: Date | number) => Date) => dateToPosition(roundDate(positionToDate(position)));
     
     const r = (x: number) => Math.round(x * 1000) / 1000;
 
@@ -105,12 +81,13 @@ import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfI
 
     const testClosets = (position: number) =>
     {
-        positionToDate             (position )/*? $.toISOString()*/;
-        r(closestYearDaysFromZero  (position))/*?*/;
-        r(closestMonthDaysFromZero (position))/*?*/;
-        r(closestDayDaysFromZero   (position))/*?*/;
-        r(closestHourDaysFromZero  (position))/*?*/;
-        r(closestMinuteDaysFromZero(position))/*?*/;
+        positionToDate                          (position )/*? $.toISOString()*/;
+        r(closestDateDaysFromZero(position, startOfYear  ))/*?*/;
+        r(closestDateDaysFromZero(position, startOfMonth ))/*?*/;
+        r(closestDateDaysFromZero(position, startOfDay   ))/*?*/;
+        r(closestDateDaysFromZero(position, startOfHour  ))/*?*/;
+        r(closestDateDaysFromZero(position, startOfMinute))/*?*/;
+        r(closestDateDaysFromZero(position, startOfSecond))/*?*/;
     };
 
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].forEach(month => testDateToPosition(month));
@@ -118,7 +95,6 @@ import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfI
     [-3, -2, -1, 0, 1, 2, 3].forEach(position => testClosets(position));
 
     const screenWidth  = 10;
-    const daysOnScreen = screenWidth / dayWidth;      /*?*/
     const position     = 5;
     const left         = position - screenWidth / 2;  /*?*/
     const right        = position + screenWidth / 2;  /*?*/
