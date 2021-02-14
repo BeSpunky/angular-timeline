@@ -22,15 +22,17 @@ export class TickItem
     }
 }
 
-export type TickLabelFn = (tickIndex: number, value: any) => string;
+export type TickLabeler = (tickIndex: number, value: any) => string;
+
+export type TickItems = number | any[];
 
 export interface TimelineTick
 {
     readonly id     : BehaviorSubject<string>;
-    readonly items  : BehaviorSubject<number | any[]>;
+    readonly items  : BehaviorSubject<TickItems>;
     readonly minZoom: BehaviorSubject<number>;
     readonly maxZoom: BehaviorSubject<number>;
-    readonly label  : BehaviorSubject<TickLabelFn>;
+    readonly label  : BehaviorSubject<TickLabeler>;
 
     readonly view    : ViewContainerRef;
     readonly template: TemplateRef<any>;
@@ -50,11 +52,11 @@ export interface TimelineTick
 })
 export class TimelineTickDirective implements TimelineTick
 {
-    public readonly id     : BehaviorSubject<string>         = new BehaviorSubject('');
-    public readonly items  : BehaviorSubject<number | any[]> = new BehaviorSubject(0 as number | any[]);
-    public readonly minZoom: BehaviorSubject<number>         = new BehaviorSubject(0);
-    public readonly maxZoom: BehaviorSubject<number>         = new BehaviorSubject(100);
-    public readonly label  : BehaviorSubject<TickLabelFn>    = new BehaviorSubject((index, value) => value);
+    public readonly id     : BehaviorSubject<string>      = new BehaviorSubject('');
+    public readonly items  : BehaviorSubject<TickItems>   = new BehaviorSubject(0 as TickItems);
+    public readonly minZoom: BehaviorSubject<number>      = new BehaviorSubject(0);
+    public readonly maxZoom: BehaviorSubject<number>      = new BehaviorSubject(100);
+    public readonly label  : BehaviorSubject<TickLabeler> = new BehaviorSubject((index, value) => value);
     
     public readonly itemCount    : Observable<number>;
     public readonly renderedItems: Observable<TickItem[]>;
@@ -81,7 +83,7 @@ export class TimelineTickDirective implements TimelineTick
     @Input() public set timelineTickItems  (value: number | any[]) { this.items.next(value); }
     @Input() public set timelineTickMinZoom(value: number)         { this.minZoom.next(value); }
     @Input() public set timelineTickMaxZoom(value: number)         { this.maxZoom.next(value); }
-    @Input() public set timelineTickLabel  (value: TickLabelFn)    { this.label.next(value); }
+    @Input() public set timelineTickLabel  (value: TickLabeler)    { this.label.next(value); }
 
     // TODO: What's the point in having this separated if `this.items` can be the item count itself?
     // ? Consider separating `this.items` and allowing only an array of items, while `this.itemCount` will be set by the user
