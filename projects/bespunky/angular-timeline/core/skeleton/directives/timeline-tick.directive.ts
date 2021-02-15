@@ -6,7 +6,7 @@ import { useActivationSwitch } from '../rxjs/activation-switch';
 import { debug } from '../rxjs/debug';
 import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/timeline-state.service';
-import { TimelineTickVirtualization } from '../services/timeline-tick-virtualization.service';
+import { TimelineTickVirtualizationService } from '../services/timeline-tick-virtualization.service';
 
 export class TickItem
 {
@@ -54,7 +54,7 @@ export class TimelineTickDirective extends TimelineTick
         public  readonly view      : ViewContainerRef,
         public  readonly template  : TemplateRef<any>,
         private readonly state     : TimelineState,
-        private readonly virtualize: TimelineTickVirtualization
+        private readonly virtualize: TimelineTickVirtualizationService
     )
     {
         super();

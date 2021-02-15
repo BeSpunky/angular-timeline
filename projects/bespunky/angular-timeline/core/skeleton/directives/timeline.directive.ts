@@ -7,13 +7,12 @@ import { debug } from '../rxjs/debug';
 import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
 import { TimelineRenderer, TimelineRendererProvider } from '../services/timeline-renderer.service';
 import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
-import { TimelineTickVirtualizationProvider } from '../services/timeline-tick-virtualization.service';
 import { TickItem, TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineTickVirtualizationProvider, TimelineRendererProvider,  TimelineControlProvider],
+    providers: [TimelineStateProvider, TimelineRendererProvider,  TimelineControlProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
