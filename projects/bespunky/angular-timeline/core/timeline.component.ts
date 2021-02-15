@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { eachYearOfInterval, getDaysInMonth, getDaysInYear, eachMonthOfInterval, eachHourOfInterval, differenceInMinutes, addMinutes, addSeconds, differenceInSeconds, eachDayOfInterval, startOfMinute, startOfSecond } from 'date-fns';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from './skeleton/abstraction/types';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from './skeleton/view-models/types';
 
 @Component({
     selector     : 'bs-timeline',

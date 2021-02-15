@@ -1,7 +1,7 @@
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { TickItem } from '../../abstraction/tick-item';
+import { TickItem } from '../../view-models/tick-item';
 import { TimelineTick } from '../../directives/timeline-tick';
-import { RenderedTick } from './models/rendered-tick';
+import { RenderedTick } from '../../view-models/rendered-tick';
 
 export abstract class TimelineRenderer extends Destroyable
 {

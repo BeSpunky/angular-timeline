@@ -1,11 +1,11 @@
 import { ElementRef, Injectable } from '@angular/core';
 import { fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
-import { TickItem } from '../../abstraction/tick-item';
+import { TickItem } from '../../view-models/tick-item';
 import { TimelineTick } from '../../directives/timeline-tick';
 import { TimelineState } from '../state/timeline-state';
-import { RenderedTick } from './models/rendered-tick';
-import { TickContext, TickViewContext } from './models/tick-context';
+import { RenderedTick } from '../../view-models/rendered-tick';
+import { TickContext, TickViewContext } from '../../view-models/tick-context';
 import { TimelineRenderer } from './timeline-renderer';
 
 @Injectable()

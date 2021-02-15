@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ViewBounds } from '../render/models/view-bounds';
+import { ViewBounds } from '../../view-models/view-bounds';
     
 export abstract class TimelineState
 {

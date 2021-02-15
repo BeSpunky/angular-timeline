@@ -1,6 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
-import { TickItem } from '../../../abstraction/tick-item';
-import { TimelineState } from '../../state/timeline-state';
+import { TickItem } from './tick-item';
+import { TimelineState } from '../services/state/timeline-state';
 
 export class TickContext
 {

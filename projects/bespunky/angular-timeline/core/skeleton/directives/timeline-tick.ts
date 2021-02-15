@@ -1,7 +1,7 @@
 import { ViewContainerRef, TemplateRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { TickItem } from '../abstraction/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
+import { TickItem } from '../view-models/tick-item';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
 
 export abstract class TimelineTick
 {

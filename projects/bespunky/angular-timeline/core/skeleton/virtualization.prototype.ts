@@ -1,5 +1,5 @@
-import { TickItem } from './abstraction/tick-item';
-import { ViewBounds } from './services/render/models/view-bounds';
+import { TickItem } from './view-models/tick-item';
+import { ViewBounds } from './services/render/view-models/view-bounds';
 
 const parent        = 7;
 const tickWidth     = 500;

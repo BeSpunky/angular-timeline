@@ -1,5 +1,5 @@
 import { ViewRef } from '@angular/core';
-import { TickItem } from '../../../abstraction/tick-item';
+import { TickItem } from './tick-item';
 import { TickContext } from './tick-context';
 
 export interface RenderedTick

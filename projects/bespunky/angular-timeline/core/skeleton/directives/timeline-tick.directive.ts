@@ -1,8 +1,8 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable, combineLatest, animationFrameScheduler } from 'rxjs';
 import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
-import { TickItem } from '../abstraction/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
+import { TickItem } from '../view-models/tick-item';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
 import { useActivationSwitch } from '../rxjs/activation-switch';
 import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/state/timeline-state';
