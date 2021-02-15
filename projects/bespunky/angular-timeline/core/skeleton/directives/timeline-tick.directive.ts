@@ -6,7 +6,7 @@ import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/ty
 import { useActivationSwitch } from '../rxjs/activation-switch';
 import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/state/timeline-state';
-import { TimelineTickVirtualizationService } from '../services/timeline-tick-virtualization.service';
+import { TimelineTickVirtualizationService } from '../services/virtualization/timeline-tick-virtualization.service';
 import { TimelineTick } from './timeline-tick';
 
 @Directive({

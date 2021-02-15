@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { TimelineLocationService } from './timeline-location.service';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
-import { TickItem } from '../abstraction/tick-item';
+import { TickItem } from '../../abstraction/tick-item';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../../abstraction/types';
+import { TimelineLocationService } from '../location/timeline-location.service';
 
 @Injectable({ providedIn: 'root' })
 export class TimelineTickVirtualizationService

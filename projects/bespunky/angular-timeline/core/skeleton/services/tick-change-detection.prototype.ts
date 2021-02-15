@@ -1,4 +1,4 @@
-import { TickVisualizationChanges } from './timeline-renderer.service';
+import { TickVisualizationChanges } from './render/timeline-renderer.service';
 
    let currentViews  =     [0, 1, 2, 3, 4];
 const renderedItems    = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7]; // Grow on both sides
