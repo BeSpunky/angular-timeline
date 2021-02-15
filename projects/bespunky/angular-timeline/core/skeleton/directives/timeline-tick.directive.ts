@@ -7,7 +7,6 @@ import { debug } from '../rxjs/debug';
 import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineTickVirtualization } from '../services/timeline-tick-virtualization.service';
-import { TimelineToolsService } from '../services/timeline-tools.service';
 
 export class TickItem
 {
@@ -67,7 +66,6 @@ export class TimelineTickDirective implements TimelineTick
         public  readonly template  : TemplateRef<any>,
         private readonly state     : TimelineState,
         private readonly virtualize: TimelineTickVirtualization,
-        private readonly tools     : TimelineToolsService
     )
     {
         this.shouldRender  = this.shouldRenderFeed();

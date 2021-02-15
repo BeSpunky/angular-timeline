@@ -4,7 +4,6 @@ import { BehaviorSubject, combineLatest, fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 import { TickItem, TimelineTick } from '../directives/timeline-tick.directive';
 import { RenderedTick, TimelineState } from './timeline-state.service';
-import { TimelineToolsService } from './timeline-tools.service';
 
 export class TickContext
 {
@@ -92,7 +91,7 @@ export abstract class TimelineRenderer extends Destroyable
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
 {
-    constructor(private state: TimelineState, private tools: TimelineToolsService, private element: ElementRef)
+    constructor(private state: TimelineState, private element: ElementRef)
     {
         super();
 
