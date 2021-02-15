@@ -1,10 +1,10 @@
 import { ClassProvider, Injectable, ViewRef } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { TickItem } from '../directives/timeline-tick.directive';
 import { TickContext, ViewBounds } from './timeline-renderer.service';
 
-export interface CreatedTickView
+export interface RenderedTick
 {
     item   : TickItem;
     context: TickContext;
@@ -18,12 +18,13 @@ export abstract class TimelineState
     abstract readonly zoom           : BehaviorSubject<number>;
     abstract readonly zoomDeltaFactor: BehaviorSubject<number>;
     abstract readonly baseTickSize   : BehaviorSubject<number>;
-    abstract readonly bufferedTicks  : BehaviorSubject<number>;
+    abstract readonly ticksBuffer    : BehaviorSubject<number>;
     abstract readonly viewCenter     : BehaviorSubject<number>;
     abstract readonly viewBounds     : BehaviorSubject<ViewBounds>;
     abstract readonly moveDeltaFactor: BehaviorSubject<number>;
-
-    abstract readonly ticksInView: { [tickLevel: number]: CreatedTickView[] };
+    
+    abstract readonly dayWidth   : Observable<number>;
+    abstract readonly ticksInView: { [tickLevel: number]: RenderedTick[] };
 
     abstract debouncedZoom(dueTime?: number): Observable<number>;
 
@@ -38,17 +39,27 @@ export class TimelineStateService extends TimelineState
     public readonly viewPortHeight : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly zoom           : BehaviorSubject<number>     = new BehaviorSubject(1);
     public readonly zoomDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(1.06);
-    public readonly baseTickSize   : BehaviorSubject<number>     = new BehaviorSubject(300);
-    public readonly bufferedTicks  : BehaviorSubject<number>     = new BehaviorSubject(0);
+    public readonly baseTickSize   : BehaviorSubject<number>     = new BehaviorSubject(1);
+    public readonly ticksBuffer    : BehaviorSubject<number>     = new BehaviorSubject(0.5);
     public readonly viewCenter     : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewBounds     : BehaviorSubject<ViewBounds> = new BehaviorSubject(new ViewBounds(0, 0, 0, 0));
     public readonly moveDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(0.2);
     
-    public readonly ticksInView: { [tickLevel: number]: CreatedTickView[] } = { };
+    public readonly dayWidth   : Observable<number>;
+    public readonly ticksInView: { [tickLevel: number]: RenderedTick[] } = { };
 
     constructor()
     {
         super();
+
+        this.dayWidth = this.dayWidthFeed();
+    }
+
+    private dayWidthFeed(): Observable<number>
+    {
+        return combineLatest([this.baseTickSize, this.zoom, this.zoomDeltaFactor]).pipe(
+            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom - 1))
+        );
     }
 
     public debouncedZoom(dueTime: number = 200): Observable<number>

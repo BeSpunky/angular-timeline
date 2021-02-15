@@ -1,13 +1,13 @@
-<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="500" #timeline="timeline" (mousemove)="ddd($event)">
-    <g *timelineTick="'year'; minZoom: -100; maxZoom: 50; let position = position; let value = value">
+<svg timeline class="timeline" height="50vh" width="100vw" [attr.viewBox]="timeline.svgViewBox | async" [baseTickSize]="20" #timeline="timeline" (mousemove)="ddd($event)">
+    <!-- <g *timelineTick="'year'; minZoom: -100; maxZoom: 50; dayFactor: dayFactors.daysInYear; datesBetween: datesBetween.years; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="0"
               [attr.x2]="position | async" y2="800"
               stroke-width="5" stroke="black"></line>
 
         <text [attr.x]="position | async" y="400" dx="20" font-size="20">{{value | async}}</text>
-    </g>
+    </g> -->
 
-    <g *timelineTick="'month'; minZoom: 15; maxZoom: 80; items: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; let position = position; let value = value">
+    <g *timelineTick="'month'; minZoom: -5; maxZoom: 80; dayFactor: dayFactors.daysInMonth; datesBetween: datesBetween.months; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="50"
               [attr.x2]="position | async" y2="750"
               stroke-width="4" stroke="green"></line>
@@ -15,7 +15,7 @@
         <text [attr.x]="position | async" y="300" dx="10" font-size="20">{{value | async}}</text>
     </g>
 
-    <g *timelineTick="'day'; minZoom: 30; maxZoom: 120; items: 31; let position = position; let value = value">
+    <g *timelineTick="'day'; minZoom: 30; maxZoom: 120; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="100"
               [attr.x2]="position | async" y2="700"
               stroke-width="3" stroke="blue"></line>
@@ -23,7 +23,7 @@
         <text [attr.x]="position | async" y="280" dx="10" font-size="20">{{value | async}}</text>
     </g>
 
-    <g *timelineTick="'hour'; minZoom: 100; maxZoom: 200; items: 24; let position = position; let value = value">
+    <g *timelineTick="'hour'; minZoom: 100; maxZoom: 200; dayFactor: dayFactors.hoursInDay; datesBetween: datesBetween.hours; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="130"
               [attr.x2]="position | async" y2="700"
               stroke-width="3" stroke="red"></line>
@@ -31,7 +31,7 @@
         <text [attr.x]="position | async" y="250" dx="10" font-size="20">{{value | async}}</text>
     </g>
 
-    <g *timelineTick="'minute'; minZoom: 140; maxZoom: 600; items: 60; let position = position; let value = value">
+    <g *timelineTick="'minute'; minZoom: 140; maxZoom: 600; dayFactor: dayFactors.minutesInDay; datesBetween: datesBetween.minutes; let position = position; let value = value">
         <line [attr.x1]="position | async" y1="160"
               [attr.x2]="position | async" y2="700"
               stroke-width="3" stroke="yellow"></line>

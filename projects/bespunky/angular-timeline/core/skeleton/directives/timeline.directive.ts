@@ -7,19 +7,20 @@ import { debug } from '../rxjs/debug';
 import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
 import { TimelineRenderer, TimelineRendererProvider } from '../services/timeline-renderer.service';
 import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
+import { TimelineTickVirtualizationProvider } from '../services/timeline-tick-virtualization.service';
 import { TickItem, TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
 
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineRendererProvider, TimelineControlProvider],
+    providers: [TimelineStateProvider, TimelineTickVirtualizationProvider, TimelineRendererProvider,  TimelineControlProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
     @ContentChildren(TimelineTickDirective) public ticks!: QueryList<TimelineTick>;
     
-    public readonly svgViewBox : Observable<string>;
-
+    public readonly svgViewBox: Observable<string>;
+    
     constructor(
         private changes : ChangeDetectorRef,
         public  state   : TimelineState,

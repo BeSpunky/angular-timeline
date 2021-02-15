@@ -56,7 +56,7 @@ import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfI
 
     const dateToPosition = (yOrDate: number | Date, m?: number, d?: number, h?: number, mm?: number, s?: number, ms?: number) => dayWidth * daysSinceZero(yOrDate, m, d, h, mm, s, ms);
 
-    const positionToDate = (position: number) => new Date(new Date(position * 24 * 60 * 60 * 1000 / dayWidth).getTime() + zero);
+    const positionToDate = (position: number) => new Date(position * 24 * 60 * 60 * 1000 / dayWidth + zero);
     
     positionToDate(0);/*?*/
     
