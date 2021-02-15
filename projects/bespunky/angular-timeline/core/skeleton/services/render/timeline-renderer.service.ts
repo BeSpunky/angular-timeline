@@ -1,93 +1,12 @@
-import { ClassProvider, ElementRef, Injectable } from '@angular/core';
-import { Destroyable } from '@bespunky/angular-zen/core';
-import { BehaviorSubject, combineLatest, fromEvent, Observable } from 'rxjs';
+import { ElementRef, Injectable } from '@angular/core';
+import { fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
-import { TickItem } from '../abstraction/tick-item';
-import { TimelineTick } from '../directives/timeline-tick';
-import { RenderedTick, TimelineState } from './timeline-state.service';
-
-export class TickContext
-{
-    public readonly width   : BehaviorSubject<number>;
-    public readonly position: BehaviorSubject<number>;
-    public readonly label   : BehaviorSubject<string | number>;
-    public readonly value   : BehaviorSubject<Date>;
-    
-    constructor(
-        public readonly state: TimelineState,
-        item: TickItem
-    )
-    {
-        this.position = new BehaviorSubject(item.position);
-        this.value    = new BehaviorSubject(item.value   );
-        this.width    = new BehaviorSubject(item.width   );
-        this.label    = new BehaviorSubject(item.label   );
-    }
-
-    public update(item: TickItem)
-    {
-        this.position.next(item.position);
-        this.value   .next(item.value   );
-        this.width   .next(item.width   );
-        this.label   .next(item.label   );
-    }
-}
-
-export type TickViewContext = { $implicit: TickContext } & Partial<TickContext>;
-
-export class ViewBounds
-{
-    public readonly left!  : number;
-    public readonly top!   : number;
-    public readonly right! : number;
-    public readonly bottom!: number;
-
-    public readonly width! : number;
-    public readonly height!: number;
-    
-    constructor(
-        public readonly viewPortWidth : number,
-        public readonly viewPortHeight: number,
-        public readonly zoom          : number,
-        public readonly viewCenter    : number
-    )
-    {
-        this.top    = 0;
-        this.left   = viewCenter - viewPortWidth / 2;
-        this.width  = viewPortWidth;
-        this.height = viewPortHeight;
-        this.right  = this.left + this.width;
-        this.bottom = this.top + this.height;
-    }
-
-    public toSvgViewBox(): string
-    {
-        return `${this.left} ${this.top} ${this.width} ${this.height}`;
-    }
-}
-
-export interface TickVisualizationChanges
-{
-    addPrefixCount?: number;
-    addSuffixCount?: number;
-    
-    removePrefixCount?: number;
-    removeSuffixCount?: number;
-
-    updateFrom      : number;
-    updateTo        : number;
-    updateSourceFrom: number;
-
-    replaceAll: boolean;
-}
-
-export abstract class TimelineRenderer extends Destroyable
-{
-    public readonly ticksInView: { [tickLevel: number]: RenderedTick[] } = { };
-
-    abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: TickItem[]): void;
-    abstract unrenderTicks(tickLevel: number): void;
-}
+import { TickItem } from '../../abstraction/tick-item';
+import { TimelineTick } from '../../directives/timeline-tick';
+import { TimelineState } from '../state/timeline-state';
+import { RenderedTick } from './models/rendered-tick';
+import { TickContext, TickViewContext } from './models/tick-context';
+import { TimelineRenderer } from './timeline-renderer';
 
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
@@ -114,7 +33,6 @@ export class TimelineRendererService extends TimelineRenderer
         );
     }
     
-    // TODO: Aggregate changes instead of clearing and recreating views
     public renderTicks(tick: TimelineTick, tickLevel: number, newTickItems: TickItem[]): void
     {
         const renderedViews = this.ticksInView[tickLevel] || [];
@@ -205,8 +123,3 @@ export class TimelineRendererService extends TimelineRenderer
         };
     }
 }
-
-export const TimelineRendererProvider: ClassProvider = {
-    provide : TimelineRenderer,
-    useClass: TimelineRendererService
-};

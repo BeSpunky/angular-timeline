@@ -5,7 +5,7 @@ import { TickItem } from '../abstraction/tick-item';
 import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
 import { useActivationSwitch } from '../rxjs/activation-switch';
 import { valueInRange } from '../rxjs/value-in-range';
-import { TimelineState } from '../services/timeline-state.service';
+import { TimelineState } from '../services/state/timeline-state';
 import { TimelineTickVirtualizationService } from '../services/timeline-tick-virtualization.service';
 import { TimelineTick } from './timeline-tick';
 

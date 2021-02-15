@@ -1,5 +1,5 @@
-import { TickItem } from './directives/timeline-tick.directive';
-import { ViewBounds } from './services/timeline-renderer.service';
+import { TickItem } from './abstraction/tick-item';
+import { ViewBounds } from './services/render/models/view-bounds';
 
 const parent        = 7;
 const tickWidth     = 500;
