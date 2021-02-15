@@ -3,35 +3,32 @@ import { Destroyable } from '@bespunky/angular-zen/core';
 import { BehaviorSubject, combineLatest, fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 import { TickItem, TimelineTick } from '../directives/timeline-tick.directive';
-import { CreatedTickView, TimelineState } from './timeline-state.service';
-import { TimelineToolsService } from './timeline-tools.service';
+import { RenderedTick, TimelineState } from './timeline-state.service';
 
 export class TickContext
 {
-    public readonly index   : number;
     public readonly width   : BehaviorSubject<number>;
     public readonly position: BehaviorSubject<number>;
-    public readonly label   : BehaviorSubject<string>;
-    public readonly value   : BehaviorSubject<any>;
+    public readonly label   : BehaviorSubject<string | number>;
+    public readonly value   : BehaviorSubject<Date>;
     
     constructor(
         public readonly state: TimelineState,
         item: TickItem
     )
     {
-        this.index    = item.index;
-        this.width    = new BehaviorSubject(item.width);
         this.position = new BehaviorSubject(item.position);
-        this.label    = new BehaviorSubject(item.label   );
         this.value    = new BehaviorSubject(item.value   );
+        this.width    = new BehaviorSubject(item.width   );
+        this.label    = new BehaviorSubject(item.label   );
     }
 
     public update(item: TickItem)
     {
-        this.width   .next(item.width);
         this.position.next(item.position);
+        this.value   .next(item.value   );
+        this.width   .next(item.width   );
         this.label   .next(item.label   );
-        this.value   .next(item.value);
     }
 }
 
@@ -85,6 +82,8 @@ export interface TickVisualizationChanges
 
 export abstract class TimelineRenderer extends Destroyable
 {
+    public readonly ticksInView: { [tickLevel: number]: RenderedTick[] } = { };
+
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: TickItem[]): void;
     abstract unrenderTicks(tickLevel: number): void;
 }
@@ -92,7 +91,7 @@ export abstract class TimelineRenderer extends Destroyable
 @Injectable()
 export class TimelineRendererService extends TimelineRenderer
 {
-    constructor(private state: TimelineState, private tools: TimelineToolsService, private element: ElementRef)
+    constructor(private state: TimelineState, private element: ElementRef)
     {
         super();
 
@@ -115,163 +114,82 @@ export class TimelineRendererService extends TimelineRenderer
     }
     
     // TODO: Aggregate changes instead of clearing and recreating views
-    public renderTicks(tick: TimelineTick, tickLevel: number, renderedItems: TickItem[]): void
+    public renderTicks(tick: TimelineTick, tickLevel: number, newTickItems: TickItem[]): void
     {
+        const renderedViews = this.ticksInView[tickLevel] || [];
+
         // Update state with created views
-        this.state.ticksInView[tickLevel] = this.aggragateTickChanges(tick, tickLevel, renderedItems);
+        this.ticksInView[tickLevel] = this.recycleViewsAndAggregateChanges(tick, renderedViews , newTickItems);
     }
 
     public unrenderTicks(tickLevel: number): void
     {
-        if (!this.state.ticksInView[tickLevel]) return;
+        if (!this.ticksInView[tickLevel]) return;
 
-        this.state.ticksInView[tickLevel].forEach(viewRef => viewRef.view.destroy());
+        this.ticksInView[tickLevel].forEach(viewRef => viewRef.view.destroy());
 
-        delete this.state.ticksInView[tickLevel];
+        delete this.ticksInView[tickLevel];
     }
 
-    private renderTick(tick: TimelineTick, item: TickItem): CreatedTickView
+    private renderTick(tick: TimelineTick, item: TickItem): RenderedTick
     {
         const viewContext = this.createViewContext(item);
         const view        = tick.view!.createEmbeddedView(tick.template, viewContext);
         
-        return { item, view, context: viewContext.$implicit } as CreatedTickView;
+        return { item, view, context: viewContext.$implicit } as RenderedTick;
     }
 
-    private unrenderTick(tickView: CreatedTickView): void
+    private unrenderTick(tickView: RenderedTick): void
     {
         tickView?.view.destroy();
     }
 
-    private aggragateTickChanges(tick: TimelineTick, tickLevel: number, renderedItems: TickItem[])
+    private updateRenderedTicks(renderedTicks: RenderedTick[], newTickItems: TickItem[], count: number)
     {
-        const currentViews = this.state.ticksInView[tickLevel];
-
-        if (!currentViews) return renderedItems.map(item => this.renderTick(tick, item));
-
-        const changes = this.detectTickChanges(currentViews, renderedItems);
-
-        if (changes.replaceAll)
+        for (let i = 0; i < count; ++i)
         {
-            this.unrenderTicks(tickLevel);
-            return renderedItems.map(item => this.renderTick(tick, item));
-        }
+            const renderedTick = renderedTicks[i];
+            const newTickItem  = newTickItems [i];
 
-        // Update views which stay on the screen before removing or adding items to ensure correct index access
-        this.updateTicks(currentViews, renderedItems, changes.updateFrom, changes.updateTo, changes.updateSourceFrom);
-
-        // Handle suffix changes before prefixes so that indexes will fit correctly. If prefix changes would have been handled before, the array would grow/shrink
-        // from the left, rendering the indexes received from the detectTickChanges() method useless.
-        if (changes.removeSuffixCount) this.removeSuffix(currentViews, changes.removeSuffixCount);
-        if (changes.addSuffixCount   ) this.suffix      (currentViews, renderedItems,tick, changes.addSuffixCount);
-        
-        if (changes.removePrefixCount) this.removePrefix(currentViews, changes.removePrefixCount);
-        if (changes.addPrefixCount   ) this.prefix      (currentViews, renderedItems, tick, changes.addPrefixCount);
-
-        return currentViews;
-    }
-    
-    private updateTicks(currentViews: CreatedTickView[], renderedItems: TickItem[], from: number, to: number, sourceIndex: number)
-    {
-        for (let destIndex = from; destIndex <= to; ++destIndex)
-        {
-            const view = currentViews[destIndex];
-            const item = renderedItems[sourceIndex++];
-
-            view.item = item;
-            view.context.update(item);
+            renderedTick.item = newTickItem;
+            renderedTick.context.update(newTickItem);
         }
     }
 
-    private defineTickChangeBounds(currentViews: CreatedTickView[], renderedItems: TickItem[]): { oldFirstIndex: number; newFirstIndex: number; oldLastIndex: number; newLastIndex: number; isNewTickBatch: boolean; }
+    private recycleViewsAndAggregateChanges(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
     {
-        const oldFirstIndex = currentViews [0].item.index;
-        const newFirstIndex = renderedItems[0].index;
-        
-        const oldLastIndex = currentViews [currentViews .length - 1].item.index;
-        const newLastIndex = renderedItems[renderedItems.length - 1].index;
+        const changed = renderedTicks.length - newTickItems.length;
 
-        const isNewTickBatch = newFirstIndex > oldLastIndex || newLastIndex < oldFirstIndex;
+        let updateCount = renderedTicks.length;
 
-        return { oldFirstIndex, newFirstIndex, oldLastIndex, newLastIndex, isNewTickBatch };
-    }
+        if (changed > 0) // Items were removed
+        {
+            this.unrenderRemovedTicks(renderedTicks, changed);
 
-    private detectTickChanges(currentViews: CreatedTickView[], renderedItems: TickItem[]): TickVisualizationChanges
-    {
-        const { oldFirstIndex, newFirstIndex, oldLastIndex, newLastIndex, isNewTickBatch } = this.defineTickChangeBounds(currentViews, renderedItems);
+            updateCount = renderedTicks.length;
+        }
+        else if (changed < 0) // Items were added
+        {
+            const addedTicks = this.renderMissingTicks(newTickItems, changed, tick);
+
+            updateCount = renderedTicks.length;
                 
-        if (isNewTickBatch) return { replaceAll: true, updateFrom: 0, updateTo: 0, updateSourceFrom: 0 };
-
-        const prefixChanges = oldFirstIndex - newFirstIndex;
-        const suffixChanges = newLastIndex  - oldLastIndex;
-
-        let changes: TickVisualizationChanges = { replaceAll: false, updateFrom: 0, updateTo: 0, updateSourceFrom: 0 };
-
-        if (prefixChanges < 0)
-        {
-            changes.removePrefixCount = -prefixChanges;
-            changes.updateFrom        = -prefixChanges;
-            changes.updateSourceFrom  = 0;
+            renderedTicks.push(...addedTicks);
         }
-        else
-        {
-            changes.addPrefixCount   = prefixChanges;
-            changes.updateFrom       = 0;
-            changes.updateSourceFrom = prefixChanges;
-        }
-
-        if (suffixChanges < 0)
-        {
-            changes.removeSuffixCount = -suffixChanges;
-            changes.updateTo          = currentViews.length - 1 + suffixChanges ;
-        }
-        else
-        {
-            changes.addSuffixCount   = suffixChanges;
-            changes.updateTo         = currentViews.length - 1;
-        }
-
-        return changes;
-    }
-
-    private removePrefix(currentViews: CreatedTickView[], itemCount: number): void
-    {
-        this.removeTicks(currentViews, itemCount);
-    }
-    
-    private removeSuffix(currentViews: CreatedTickView[], itemCount: number): void
-    {
-        this.removeTicks(currentViews, -itemCount);
-    }
-    
-    /**
-     *
-     *
-     * @private
-     * @param {CreatedTickView[]} currentViews
-     * @param {number} itemCount Positive to remove prefix, negative to remove suffix.
-     */
-    private removeTicks(currentViews: CreatedTickView[], itemCount: number): void
-    {
-        const removed = currentViews.splice(itemCount);
         
-        removed.forEach(view => this.unrenderTick(view));
+        this.updateRenderedTicks(renderedTicks, newTickItems, updateCount);
+
+        return renderedTicks;
     }
 
-    private prefix(currentViews: CreatedTickView[], renderedItems: TickItem[], tick: TimelineTick, itemCount: number): void
+    private renderMissingTicks(newTickItems: TickItem[], changed: number, tick: TimelineTick)
     {
-        const newItems = renderedItems.slice(0, itemCount);
-        const newViews = newItems.map(item => this.renderTick(tick, item));
-
-        currentViews.unshift(...newViews);
+        return newTickItems.slice(changed).map(item => this.renderTick(tick, item));
     }
 
-    private suffix(currentViews: CreatedTickView[], renderedItems: TickItem[], tick: TimelineTick, itemCount: number): void
+    private unrenderRemovedTicks(renderedTicks: RenderedTick[], removedCount: number)
     {
-        const newItems = renderedItems.slice(renderedItems.length - itemCount);
-        const newViews = newItems.map(item => this.renderTick(tick, item));
-
-        currentViews.push(...newViews);
+        renderedTicks.splice(-removedCount).forEach(tick => this.unrenderTick(tick));
     }
 
     private createViewContext(item: TickItem): TickViewContext
