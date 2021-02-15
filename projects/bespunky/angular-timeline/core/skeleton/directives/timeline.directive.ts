@@ -85,6 +85,12 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         this.state.baseTickSize.next(value);
     }
 
+    /** The width of the top level tick in zero-zoom mode. */
+    @Input() public set zoom(value: number)
+    {
+        this.state.zoom.next(value);
+    }
+
     /** Activates or deactivates zoom on wheel events. Default is `true`. */
     @Input() public set zoomOnWheel(active: boolean)
     {

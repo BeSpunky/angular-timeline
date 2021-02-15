@@ -1,7 +1,7 @@
 import { ClassProvider, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { subYears, Interval } from 'date-fns';
-import { DayFactor, TickItem, TickLabeler } from '../directives/timeline-tick.directive';
+import { DatesBetweenGenerator, DayFactor, TickItem, TickLabeler } from '../directives/timeline-tick.directive';
 
 // export type PositionToValueFn<T> = (position: number) => T;
 // export type ValueToPositionFn<T> = (value: T) => number;
@@ -12,7 +12,7 @@ export abstract class TimelineTickVirtualization
     // abstract readonly valueToPosition: BehaviorSubject<ValueToPositionFn<any>>;
     public abstract positionToDate(dayWidth: number, position: number)                                                                                   : Date;
     public abstract dateToPosition(dayWidth: number, yOrDate: number | Date, m?: number, d?: number, h?: number, mm?: number, s?: number, ms?: number)   : number;
-    public abstract ticksOnScreen (dayWidth: number, dayFactor: DayFactor, startPosition: number, endPosition: number, each: (interval: Interval) => Date[], label: TickLabeler): TickItem[];
+    public abstract ticksOnScreen (dayWidth: number, dayFactor: DayFactor, startPosition: number, endPosition: number, each: DatesBetweenGenerator, label: TickLabeler): TickItem[];
 }
 
 
@@ -54,21 +54,16 @@ export class TimelineTickVirtualizationService extends TimelineTickVirtualizatio
         return daysSinceYearZero(yOrDate, m, d, h, mm, s, ms) * dayWidth;
     }
 
-    public ticksOnScreen(dayWidth: number, dayFactor: DayFactor, startPosition: number, endPosition: number, datesBetween: (interval: Interval) => Date[], label: TickLabeler): TickItem[]
+    public ticksOnScreen(dayWidth: number, dayFactor: DayFactor, startPosition: number, endPosition: number, datesBetween: DatesBetweenGenerator, label: TickLabeler): TickItem[]
     {
         const width = dayFactor instanceof Function
             ? (date: Date) => dayFactor(date) * dayWidth
             : (          ) => dayWidth;
         
-        return datesBetween({
-            start: this.positionToDate(dayWidth, startPosition),
-            end  : this.positionToDate(dayWidth, endPosition)
-        }).map(date =>
-        {
-            const position = this.dateToPosition(dayWidth, date);
-            const index    = position / dayWidth;
-            return new TickItem(index, position, date, width(date), label(date));
-        });
+        const start = this.positionToDate(dayWidth, startPosition);
+        const end   = this.positionToDate(dayWidth, endPosition);
+
+        return datesBetween(start, end).map(date => new TickItem(this.dateToPosition(dayWidth, date), date, width(date), label(date)));
     };
 }
 

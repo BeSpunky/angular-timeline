@@ -11,63 +11,54 @@ import { TimelineTickVirtualization } from '../services/timeline-tick-virtualiza
 export class TickItem
 {
     constructor(
-        public readonly index   : number,
         public readonly position: number,
         public readonly value   : Date,
         public readonly width   : number,
-        public readonly label   : string
+        public readonly label   : string | number
     ) { }
 }
 
-export type TickLabeler           = (value: any) => string;
-export type DatesBetweenGenerator = ((interval: Interval) => Date[]);
-export type DayFactor = number | ((date: Date) => number);
+export type TickLabeler           = (value: any) => string | number;
+export type DatesBetweenGenerator = (start: Date, end: Date) => Date[];
+export type DayFactor             = number | ((date: Date) => number);
 
-export interface TimelineTick
+export abstract class TimelineTick
 {
-    readonly id          : BehaviorSubject<string>;
-    readonly minZoom     : BehaviorSubject<number>;
-    readonly maxZoom     : BehaviorSubject<number>;
-    readonly label       : BehaviorSubject<TickLabeler>;
-    readonly datesBetween: BehaviorSubject<DatesBetweenGenerator>;
-    readonly dayFactor   : BehaviorSubject<DayFactor>;
-
-    readonly view    : ViewContainerRef;
-    readonly template: TemplateRef<any>;
-
-    readonly renderedItems: Observable<TickItem[]>;
-    readonly shouldRender : Observable<boolean>;
+    public readonly id          : BehaviorSubject<string>                = new BehaviorSubject('');
+    public readonly minZoom     : BehaviorSubject<number>                = new BehaviorSubject(0);
+    public readonly maxZoom     : BehaviorSubject<number>                = new BehaviorSubject(100);
+    public readonly label       : BehaviorSubject<TickLabeler>           = new BehaviorSubject(value => value);
+    public readonly datesBetween: BehaviorSubject<DatesBetweenGenerator> = new BehaviorSubject((() => []) as DatesBetweenGenerator);
+    public readonly dayFactor   : BehaviorSubject<DayFactor>             = new BehaviorSubject(1 as DayFactor);
     
-    readonly parent: BehaviorSubject<TimelineTick | null>;
-    readonly child : BehaviorSubject<TimelineTick | null>;
+    public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
+    public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
+
+    abstract readonly view    : ViewContainerRef;
+    abstract readonly template: TemplateRef<any>;
+
+    abstract readonly renderedItems: Observable<TickItem[]>;
+    abstract readonly shouldRender : Observable<boolean>;
 }
 
 @Directive({
     selector: '[timelineTick]',
     exportAs: 'timelineTick'
 })
-export class TimelineTickDirective implements TimelineTick
+export class TimelineTickDirective extends TimelineTick
 {
-    public readonly id          : BehaviorSubject<string>                = new BehaviorSubject('');
-    public readonly minZoom     : BehaviorSubject<number>                = new BehaviorSubject(0);
-    public readonly maxZoom     : BehaviorSubject<number>                = new BehaviorSubject(100);
-    public readonly label       : BehaviorSubject<TickLabeler>           = new BehaviorSubject(value => value);
-    public readonly datesBetween: BehaviorSubject<DatesBetweenGenerator> = new BehaviorSubject(eachDayOfInterval);
-    public readonly dayFactor   : BehaviorSubject<DayFactor>             = new BehaviorSubject(1 as DayFactor);
-    
     public readonly renderedItems: Observable<TickItem[]>;
     public readonly shouldRender : Observable<boolean>;
-
-    public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
-    public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
 
     constructor(
         public  readonly view      : ViewContainerRef,
         public  readonly template  : TemplateRef<any>,
         private readonly state     : TimelineState,
-        private readonly virtualize: TimelineTickVirtualization,
+        private readonly virtualize: TimelineTickVirtualization
     )
     {
+        super();
+
         this.shouldRender  = this.shouldRenderFeed();
         this.renderedItems = this.renderedItemsFeed();
     }

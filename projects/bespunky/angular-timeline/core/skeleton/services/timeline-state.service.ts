@@ -13,28 +13,6 @@ export interface RenderedTick
     
 export abstract class TimelineState
 {
-    abstract readonly viewPortWidth  : BehaviorSubject<number>;
-    abstract readonly viewPortHeight : BehaviorSubject<number>;
-    abstract readonly zoom           : BehaviorSubject<number>;
-    abstract readonly zoomDeltaFactor: BehaviorSubject<number>;
-    abstract readonly baseTickSize   : BehaviorSubject<number>;
-    abstract readonly ticksBuffer    : BehaviorSubject<number>;
-    abstract readonly viewCenter     : BehaviorSubject<number>;
-    abstract readonly viewBounds     : BehaviorSubject<ViewBounds>;
-    abstract readonly moveDeltaFactor: BehaviorSubject<number>;
-    
-    abstract readonly dayWidth   : Observable<number>;
-    abstract readonly ticksInView: { [tickLevel: number]: RenderedTick[] };
-
-    abstract debouncedZoom(dueTime?: number): Observable<number>;
-
-    abstract addZoom(delta: number)      : void;
-    abstract addViewCenter(delta: number): void;
-}
-
-@Injectable()
-export class TimelineStateService extends TimelineState
-{
     public readonly viewPortWidth  : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewPortHeight : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly zoom           : BehaviorSubject<number>     = new BehaviorSubject(1);
@@ -45,8 +23,18 @@ export class TimelineStateService extends TimelineState
     public readonly viewBounds     : BehaviorSubject<ViewBounds> = new BehaviorSubject(new ViewBounds(0, 0, 0, 0));
     public readonly moveDeltaFactor: BehaviorSubject<number>     = new BehaviorSubject(0.2);
     
-    public readonly dayWidth   : Observable<number>;
-    public readonly ticksInView: { [tickLevel: number]: RenderedTick[] } = { };
+    abstract readonly dayWidth: Observable<number>;
+
+    abstract debouncedZoom(dueTime?: number): Observable<number>;
+
+    abstract addZoom(delta: number)      : void;
+    abstract addViewCenter(delta: number): void;
+}
+
+@Injectable()
+export class TimelineStateService extends TimelineState
+{     
+    public readonly dayWidth: Observable<number>;
 
     constructor()
     {

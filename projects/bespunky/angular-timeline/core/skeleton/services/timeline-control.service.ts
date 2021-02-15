@@ -6,12 +6,13 @@ import { filter, map, mapTo, mergeMap, tap, windowToggle } from 'rxjs/operators'
 import { ViewBounds } from './timeline-renderer.service';
 import { TimelineState } from './timeline-state.service';
 import { useActivationSwitch } from '../rxjs/activation-switch';
+
 export abstract class TimelineControl extends Destroyable
 {
-    abstract readonly zoomOnWheel   : BehaviorSubject<boolean>;
-    abstract readonly moveOnWheel   : BehaviorSubject<boolean>;
-    abstract readonly zoomOnKeyboard: BehaviorSubject<boolean>;
-    abstract readonly moveOnKeyboard: BehaviorSubject<boolean>;
+    public readonly zoomOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly moveOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly zoomOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
+    public readonly moveOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
 }
 
 // TODO: Reverse deltas for RTL rendering
@@ -21,11 +22,6 @@ export class TimelineControlService extends TimelineControl
     private readonly wheel  : Observable<WheelEvent>;
     private readonly keydown: Observable<KeyboardEvent>;
     
-    public readonly zoomOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly zoomOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-
     constructor(private state: TimelineState, private element: ElementRef)
     {
         super();
