@@ -2,7 +2,8 @@ import { ClassProvider, ElementRef, Injectable } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
 import { BehaviorSubject, combineLatest, fromEvent, Observable } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
-import { TickItem, TimelineTick } from '../directives/timeline-tick.directive';
+import { TickItem } from '../abstraction/tick-item';
+import { TimelineTick } from '../directives/timeline-tick';
 import { RenderedTick, TimelineState } from './timeline-state.service';
 
 export class TickContext

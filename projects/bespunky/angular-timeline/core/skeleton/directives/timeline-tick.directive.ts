@@ -1,45 +1,13 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { eachDayOfInterval } from 'date-fns';
-import { Observable, BehaviorSubject, combineLatest, merge, of, zip, asyncScheduler, animationFrameScheduler, queueScheduler } from 'rxjs';
-import { debounce, debounceTime, distinctUntilChanged, filter, map, mergeMap, multicast, observeOn, pluck, publish, refCount, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, combineLatest, animationFrameScheduler } from 'rxjs';
+import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
+import { TickItem } from '../abstraction/tick-item';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
 import { useActivationSwitch } from '../rxjs/activation-switch';
-import { debug } from '../rxjs/debug';
 import { valueInRange } from '../rxjs/value-in-range';
 import { TimelineState } from '../services/timeline-state.service';
 import { TimelineTickVirtualizationService } from '../services/timeline-tick-virtualization.service';
-
-export class TickItem
-{
-    constructor(
-        public readonly position: number,
-        public readonly value   : Date,
-        public readonly width   : number,
-        public readonly label   : string | number
-    ) { }
-}
-
-export type TickLabeler           = (value: any) => string | number;
-export type DatesBetweenGenerator = (start: Date, end: Date) => Date[];
-export type DayFactor             = number | ((date: Date) => number);
-
-export abstract class TimelineTick
-{
-    public readonly id          : BehaviorSubject<string>                = new BehaviorSubject('');
-    public readonly minZoom     : BehaviorSubject<number>                = new BehaviorSubject(0);
-    public readonly maxZoom     : BehaviorSubject<number>                = new BehaviorSubject(100);
-    public readonly label       : BehaviorSubject<TickLabeler>           = new BehaviorSubject(value => value);
-    public readonly datesBetween: BehaviorSubject<DatesBetweenGenerator> = new BehaviorSubject((() => []) as DatesBetweenGenerator);
-    public readonly dayFactor   : BehaviorSubject<DayFactor>             = new BehaviorSubject(1 as DayFactor);
-    
-    public readonly parent: BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
-    public readonly child : BehaviorSubject<TimelineTick | null> = new BehaviorSubject(null as TimelineTick | null);
-
-    abstract readonly view    : ViewContainerRef;
-    abstract readonly template: TemplateRef<any>;
-
-    abstract readonly renderedItems: Observable<TickItem[]>;
-    abstract readonly shouldRender : Observable<boolean>;
-}
+import { TimelineTick } from './timeline-tick';
 
 @Directive({
     selector: '[timelineTick]',

@@ -1,8 +1,7 @@
-import { ClassProvider, Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { subYears, Interval } from 'date-fns';
-import { DatesBetweenGenerator, DayFactor, TickItem, TickLabeler } from '../directives/timeline-tick.directive';
+import { Injectable } from '@angular/core';
 import { TimelineLocationService } from './timeline-location.service';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../abstraction/types';
+import { TickItem } from '../abstraction/tick-item';
 
 @Injectable({ providedIn: 'root' })
 export class TimelineTickVirtualizationService

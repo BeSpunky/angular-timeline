@@ -1,13 +1,12 @@
 import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { Observable, of } from 'rxjs';
-import { distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { useActivationSwitch } from '../rxjs/activation-switch';
-import { debug } from '../rxjs/debug';
+import { Observable } from 'rxjs';
+import { filter, map, startWith, takeUntil } from 'rxjs/operators';
 import { TimelineControl, TimelineControlProvider } from '../services/timeline-control.service';
 import { TimelineRenderer, TimelineRendererProvider } from '../services/timeline-renderer.service';
 import { TimelineState, TimelineStateProvider } from '../services/timeline-state.service';
-import { TickItem, TimelineTick, TimelineTickDirective } from './timeline-tick.directive';
+import { TimelineTick } from './timeline-tick';
+import { TimelineTickDirective } from './timeline-tick.directive';
 
 @Directive({
     selector : '[timeline]',

@@ -1,7 +1,7 @@
 import { ClassProvider, Injectable, ViewRef } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { TickItem } from '../directives/timeline-tick.directive';
+import { TickItem } from '../abstraction/tick-item';
 import { TickContext, ViewBounds } from './timeline-renderer.service';
 
 export interface RenderedTick
