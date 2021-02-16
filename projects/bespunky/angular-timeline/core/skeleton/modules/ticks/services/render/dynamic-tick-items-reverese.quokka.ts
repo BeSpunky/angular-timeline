@@ -1,5 +1,10 @@
 import { eachYearOfInterval, eachMonthOfInterval, eachDayOfInterval, eachHourOfInterval, subYears, differenceInMinutes, addMinutes, startOfYear, startOfMonth, startOfDay, startOfHour, startOfMinute, startOfSecond } from 'date-fns';
 
+/**
+ * This file is meant to be run using the Quokka extension as a POC for virtualizing
+ * ticks according to screen size and current view center.
+ */
+
 (function dynamicTickItemsReverse()
 {
     const date = (yOrDate: number | Date, m: number = 0, d: number = 1, h: number = 0, mm: number = 0, s: number = 0, ms: number = 0) =>
