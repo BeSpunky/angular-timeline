@@ -4,17 +4,19 @@ import { Observable } from 'rxjs';
 import { filter, map, startWith, takeUntil } from 'rxjs/operators';
 import { TimelineState } from '../services/state/timeline-state';
 import { TimelineStateProvider } from '../services/state/timeline-state.provider';
-import { TimelineTick } from './timeline-tick';
-import { TimelineTickDirective } from './timeline-tick.directive';
 import { TimelineRendererProvider } from '../services/render/timeline-renderer.provider';
 import { TimelineRenderer } from '../services/render/timeline-renderer';
 import { TimelineControl } from '../services/control/timeline-control';
 import { TimelineControlProvider } from '../services/control/timeline-control.provider';
+import { TimelineTickRendererProvider } from '../modules/ticks/services/render/timeline-tick-renderer.provider';
+import { TimelineTickDirective } from '../modules/ticks/directives/timeline-tick.directive';
+import { TimelineTick } from '../modules/ticks/directives/timeline-tick';
+import { TimelineTickRenderer } from '../modules/ticks/services/render/timeline-tick-renderer';
 
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineRendererProvider,  TimelineControlProvider],
+    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider, TimelineTickRendererProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
@@ -23,10 +25,11 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     public readonly svgViewBox: Observable<string>;
     
     constructor(
-        private changes : ChangeDetectorRef,
-        public  state   : TimelineState,
-        private renderer: TimelineRenderer,
-        private control : TimelineControl
+        private changes     : ChangeDetectorRef,
+        public  state       : TimelineState,
+        private control     : TimelineControl,
+        private renderer    : TimelineRenderer,
+        private tickRenderer: TimelineTickRenderer
     )
     {
         super();
@@ -68,8 +71,8 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
             filter(shouldRender => !shouldRender)
         );
 
-        this.subscribe(render  , renderedItems => this.renderer.renderTicks  (tick, tickLevel, renderedItems));
-        this.subscribe(unrender, _             => this.renderer.unrenderTicks(tickLevel));
+        this.subscribe(render  , renderedItems => this.tickRenderer.renderTicks  (tick, tickLevel, renderedItems));
+        this.subscribe(unrender, _             => this.tickRenderer.unrenderTicks(tickLevel));
     }
 
     private initTickHierarchy(ticks: TimelineTick[], index: number): void

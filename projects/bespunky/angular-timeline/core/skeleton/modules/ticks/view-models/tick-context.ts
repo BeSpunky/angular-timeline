@@ -1,6 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
 import { TickItem } from './tick-item';
-import { TimelineState } from '../services/state/timeline-state';
 
 export class TickContext
 {
@@ -9,10 +8,7 @@ export class TickContext
     public readonly label   : BehaviorSubject<string | number>;
     public readonly value   : BehaviorSubject<Date>;
     
-    constructor(
-        public readonly state: TimelineState,
-        item: TickItem
-    )
+    constructor(item: TickItem)
     {
         this.position = new BehaviorSubject(item.position);
         this.value    = new BehaviorSubject(item.value   );

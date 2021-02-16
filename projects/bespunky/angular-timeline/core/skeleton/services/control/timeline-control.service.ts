@@ -1,11 +1,10 @@
 import { Key } from 'ts-key-enum';
-import { ClassProvider, ElementRef, Injectable } from '@angular/core';
-import { Destroyable } from '@bespunky/angular-zen/core';
-import { BehaviorSubject, combineLatest, fromEvent, merge, Observable } from 'rxjs';
+import { ElementRef, Injectable } from '@angular/core';
+import { combineLatest, fromEvent, merge, Observable } from 'rxjs';
 import { filter, map, mapTo, tap } from 'rxjs/operators';
 import { ViewBounds } from '../../view-models/view-bounds';
 import { TimelineState } from '../state/timeline-state';
-import { useActivationSwitch } from '../../rxjs/activation-switch';
+import { useActivationSwitch } from '../../../rxjs/activation-switch';
 import { TimelineControl } from './timeline-control';
 
 // TODO: Reverse deltas for RTL rendering
