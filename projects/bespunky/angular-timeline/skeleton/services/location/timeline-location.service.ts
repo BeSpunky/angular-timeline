@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MillisecondsInADay, YearZeroJanuaryFirstInMs } from '../../../tools/date-consts';
-import { daysSinceYearZero } from '../../../tools/date-functions';
+import { daysSinceYearZero, MillisecondsInADay, YearZeroJanuaryFirstInMs } from '@bespunky/angular-timeline/helpers';
 
 @Injectable({ providedIn: 'root' })
 export class TimelineLocationService
