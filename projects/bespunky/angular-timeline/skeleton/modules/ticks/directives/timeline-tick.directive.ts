@@ -6,6 +6,14 @@ import { TimelineTickVirtualizationService } from '../services/virtualization/ti
 import { TimelineTick } from './timeline-tick';
 import { TimelineState } from '../../../services/state/timeline-state';
 
+/**
+ * Converts an element to a tick template and provides tools for timelines to easily render ticks with
+ * automatic virtualization.
+ *
+ * @export
+ * @class TimelineTickDirective
+ * @extends {TimelineTick}
+ */
 @Directive({
     selector: '[timelineTick]',
     exportAs: 'timelineTick'
