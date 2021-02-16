@@ -1,19 +1,13 @@
 import { Injectable } from '@angular/core';
-import { TimelineState } from '../../../../services/state/timeline-state';
 import { TimelineTick } from '../../directives/timeline-tick';
 import { RenderedTick } from '../../view-models/rendered-tick';
 import { TickContext, TickViewContext } from '../../view-models/tick-context';
 import { TickItem } from '../../view-models/tick-item';
 import { TimelineTickRenderer } from './timeline-tick-renderer';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class TimelineTickRendererService extends TimelineTickRenderer
-{
-    constructor(private state: TimelineState)
-    {
-        super();
-    }
-    
+{    
     public renderTicks(tick: TimelineTick, tickLevel: number, newTickItems: TickItem[]): void
     {
         const renderedViews = this.ticksInView[tickLevel] || [];

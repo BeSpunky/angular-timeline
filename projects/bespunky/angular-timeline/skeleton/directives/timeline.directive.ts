@@ -8,10 +8,9 @@ import { TimelineRendererProvider } from '../services/render/timeline-renderer.p
 import { TimelineRenderer } from '../services/render/timeline-renderer';
 import { TimelineControl } from '../services/control/timeline-control';
 import { TimelineControlProvider } from '../services/control/timeline-control.provider';
-import { TimelineTickRendererProvider } from '../modules/ticks/services/render/timeline-tick-renderer.provider';
 import { TimelineTickDirective } from '../modules/ticks/directives/timeline-tick.directive';
 import { TimelineTick } from '../modules/ticks/directives/timeline-tick';
-import { TimelineTickRenderer } from '../modules/ticks/services/render/timeline-tick-renderer';
+import { TimelineTickRendererService } from '../modules/ticks/services/render/timeline-tick-renderer.service';
 
 /**
  * Adds timeline functionality to an element.
@@ -24,7 +23,7 @@ import { TimelineTickRenderer } from '../modules/ticks/services/render/timeline-
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider, TimelineTickRendererProvider],
+    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
@@ -51,7 +50,7 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         public  state       : TimelineState,
         private control     : TimelineControl,
         private renderer    : TimelineRenderer,
-        private tickRenderer: TimelineTickRenderer
+        private tickRenderer: TimelineTickRendererService
     )
     {
         super();

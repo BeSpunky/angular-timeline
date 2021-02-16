@@ -3,7 +3,7 @@ import { TimelineState } from './timeline-state';
 import { TimelineStateService } from './timeline-state.service';
 
 /**
- * Provides the default implementation for the `TimelineTickRender` class.
+ * Provides the default implementation for the `TimelineState` class.
  *
  * Provided by the timeline directive.
  */
