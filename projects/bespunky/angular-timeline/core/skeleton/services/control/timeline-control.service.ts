@@ -1,19 +1,11 @@
 import { Key } from 'ts-key-enum';
-import { ClassProvider, ElementRef, Injectable } from '@angular/core';
-import { Destroyable } from '@bespunky/angular-zen/core';
-import { BehaviorSubject, combineLatest, fromEvent, merge, Observable, OperatorFunction } from 'rxjs';
-import { filter, map, mapTo, mergeMap, tap, windowToggle } from 'rxjs/operators';
-import { ViewBounds } from './timeline-renderer.service';
-import { TimelineState } from './timeline-state.service';
-import { useActivationSwitch } from '../rxjs/activation-switch';
-
-export abstract class TimelineControl extends Destroyable
-{
-    public readonly zoomOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveOnWheel   : BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly zoomOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-    public readonly moveOnKeyboard: BehaviorSubject<boolean> = new BehaviorSubject(true as boolean);
-}
+import { ElementRef, Injectable } from '@angular/core';
+import { combineLatest, fromEvent, merge, Observable } from 'rxjs';
+import { filter, map, mapTo, tap } from 'rxjs/operators';
+import { ViewBounds } from '../../view-models/view-bounds';
+import { TimelineState } from '../state/timeline-state';
+import { useActivationSwitch } from '../../../rxjs/activation-switch';
+import { TimelineControl } from './timeline-control';
 
 // TODO: Reverse deltas for RTL rendering
 @Injectable()
@@ -66,7 +58,7 @@ export class TimelineControlService extends TimelineControl
             // Movement factor is calculated based on the last size.
             // Zoom factor is calculated based on the zoom level.
             map(([zoomDirection, screenMouseX]) => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection, screenMouseX)]),
-            tap(([zoomDirection, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
+            tap(([, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
             map(([zoomDirection]) => zoomDirection),
             tap(zoomDirection => this.state.addZoom(zoomDirection)),
         );
@@ -94,7 +86,7 @@ export class TimelineControlService extends TimelineControl
 
         return merge(zoomIn, zoomOut).pipe(
             map(zoomDirection => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection)]),
-            tap(([zoomDirection, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
+            tap(([, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
             map(([zoomDirection]) => zoomDirection),
             tap(zoomDirection => this.state.addZoom(zoomDirection))
         );
@@ -163,8 +155,3 @@ export class TimelineControlService extends TimelineControl
         return factor;
     }
 }
-
-export const TimelineControlProvider: ClassProvider = {
-    provide : TimelineControl,
-    useClass: TimelineControlService
-};

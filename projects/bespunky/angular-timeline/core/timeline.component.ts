@@ -1,8 +1,6 @@
-import { Component,  Input,  ViewEncapsulation } from '@angular/core';
-import { TimelineState } from './skeleton/services/timeline-state.service';
-import { TimelineRenderer } from './skeleton/services/timeline-renderer.service';
-import { Interval, eachYearOfInterval, getDaysInMonth, getDaysInYear, eachMonthOfInterval, eachHourOfInterval, differenceInMinutes, addMinutes, addSeconds, differenceInSeconds, eachDayOfInterval, startOfMinute, startOfSecond } from 'date-fns';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from './skeleton/directives/timeline-tick.directive';
+import { Component, ViewEncapsulation } from '@angular/core';
+import { eachYearOfInterval, getDaysInMonth, getDaysInYear, eachMonthOfInterval, eachHourOfInterval, differenceInMinutes, addMinutes, addSeconds, differenceInSeconds, eachDayOfInterval, startOfMinute, startOfSecond } from 'date-fns';
+import { DatesBetweenGenerator, DayFactor, TickLabeler } from './skeleton/modules/ticks/view-models/types';
 
 @Component({
     selector     : 'bs-timeline',
