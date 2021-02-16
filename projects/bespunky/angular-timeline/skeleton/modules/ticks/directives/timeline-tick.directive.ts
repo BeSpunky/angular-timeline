@@ -6,8 +6,7 @@ import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/ty
 import { TimelineTickVirtualizationService } from '../services/virtualization/timeline-tick-virtualization.service';
 import { TimelineTick } from './timeline-tick';
 import { TimelineState } from '../../../services/state/timeline-state';
-import { valueInRange } from '../../../../rxjs/value-in-range';
-import { useActivationSwitch } from '../../../../rxjs/activation-switch';
+import { valueInRange, useActivationSwitch } from '@bespunky/angular-timeline/helpers';
 
 @Directive({
     selector: '[timelineTick]',

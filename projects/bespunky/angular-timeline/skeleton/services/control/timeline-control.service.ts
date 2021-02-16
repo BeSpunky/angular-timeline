@@ -2,9 +2,10 @@ import { Key } from 'ts-key-enum';
 import { ElementRef, Injectable } from '@angular/core';
 import { combineLatest, fromEvent, merge, Observable } from 'rxjs';
 import { filter, map, mapTo, tap } from 'rxjs/operators';
+
+import { useActivationSwitch } from '@bespunky/angular-timeline/helpers';
 import { ViewBounds } from '../../view-models/view-bounds';
 import { TimelineState } from '../state/timeline-state';
-import { useActivationSwitch } from '../../../rxjs/activation-switch';
 import { TimelineControl } from './timeline-control';
 
 // TODO: Reverse deltas for RTL rendering
