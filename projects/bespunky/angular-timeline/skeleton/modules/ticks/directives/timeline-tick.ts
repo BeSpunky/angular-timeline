@@ -1,5 +1,6 @@
 import { ViewContainerRef, TemplateRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { TimelineState } from '../../../services/state/timeline-state';
 import { TickItem } from '../view-models/tick-item';
 import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
 
@@ -15,6 +16,8 @@ export abstract class TimelineTick
     abstract readonly view    : ViewContainerRef;
     abstract readonly template: TemplateRef<any>;
 
-    abstract readonly renderedItems: Observable<TickItem[]>;
+    /**
     abstract readonly shouldRender : Observable<boolean>;
+    abstract readonly itemsToRender: Observable<TickItem[]>;
+    abstract readonly state: TimelineState;
 }

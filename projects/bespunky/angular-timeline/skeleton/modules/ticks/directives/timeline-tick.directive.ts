@@ -1,12 +1,10 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { Observable, combineLatest, animationFrameScheduler } from 'rxjs';
-import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { TickItem } from '../view-models/tick-item';
 import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
 import { TimelineTickVirtualizationService } from '../services/virtualization/timeline-tick-virtualization.service';
 import { TimelineTick } from './timeline-tick';
 import { TimelineState } from '../../../services/state/timeline-state';
-import { valueInRange, useActivationSwitch } from '@bespunky/angular-timeline/helpers';
 
 @Directive({
     selector: '[timelineTick]',
@@ -14,20 +12,20 @@ import { valueInRange, useActivationSwitch } from '@bespunky/angular-timeline/he
 })
 export class TimelineTickDirective extends TimelineTick
 {
-    public readonly renderedItems: Observable<TickItem[]>;
+    public readonly itemsToRender: Observable<TickItem[]>;
     public readonly shouldRender : Observable<boolean>;
 
     constructor(
         public  readonly view      : ViewContainerRef,
         public  readonly template  : TemplateRef<any>,
-        private readonly state     : TimelineState,
+        public  readonly state     : TimelineState,
         private readonly virtualize: TimelineTickVirtualizationService
     )
     {
         super();
 
-        this.shouldRender  = this.shouldRenderFeed();
-        this.renderedItems = this.renderedItemsFeed();
+        this.shouldRender  = this.virtualize.shouldRenderFeed(this);
+        this.itemsToRender = this.virtualize.itemsToRenderFeed(this);
     }
 
     @Input() public set timelineTick            (value: string)                { this.id          .next(value); }
@@ -36,32 +34,4 @@ export class TimelineTickDirective extends TimelineTick
     @Input() public set timelineTickMinZoom     (value: number)                { this.minZoom     .next(value); }
     @Input() public set timelineTickMaxZoom     (value: number)                { this.maxZoom     .next(value); }
     @Input() public set timelineTickLabel       (value: TickLabeler)           { this.label       .next(value); }
-
-    private shouldRenderFeed(): Observable<boolean>
-    {
-        return combineLatest([this.state.zoom, this.minZoom, this.maxZoom]).pipe(
-            valueInRange(),
-            distinctUntilChanged()
-        );
-    }
-
-    private renderedItemsFeed(): Observable<TickItem[]>
-    {
-        return combineLatest([this.label, this.datesBetween, this.dayFactor, this.state.dayWidth, this.state.viewBounds, this.state.ticksBuffer]).pipe(
-            // As item generation depends on multiple subjects, generation might be triggered multiple times for the same change.
-            // When zooming, for example, viewBounds + width are changed causing at least 2 notifications.
-            // The animationFrameScheduler calculates changes just before next browser content repaint, which prevents flickering and hangs,
-            // creating a smoother animation.
-            observeOn(animationFrameScheduler),
-            useActivationSwitch(this.shouldRender),
-            map(([label, datesBetween, dayFactor, dayWidth, viewBounds, bufferedTicks]) =>
-            {
-                const bufferWidth   = viewBounds.width * bufferedTicks;
-                const startPosition = viewBounds.left  - bufferWidth;
-                const endPosition   = viewBounds.right + bufferWidth;
-                
-                return this.virtualize.ticksOnScreen(dayWidth, dayFactor, startPosition, endPosition, datesBetween!, label);
-            })
-        );
-    }
 }

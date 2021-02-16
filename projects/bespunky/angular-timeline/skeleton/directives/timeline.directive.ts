@@ -57,7 +57,7 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     private observeTick(tick: TimelineTick, tickLevel: number): void
     {
         // If ticks were changes (e.g. an ngIf or ngFor creates them) then takeUntil will unsubscribe from the render observable
-        const render = tick.renderedItems.pipe(
+        const render = tick.itemsToRender.pipe(
             takeUntil(this.ticks.changes)
         );
 
