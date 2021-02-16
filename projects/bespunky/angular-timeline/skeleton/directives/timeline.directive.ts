@@ -50,12 +50,7 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 
         this.subscribe(tickUpdates, ticks =>
         {
-            ticks.forEach((tick, index) =>
-            {
-                this.initTickHierarchy(ticks, index);
-                
-                this.observeTick(tick, index);
-            });
+            ticks.forEach((tick, index) => this.observeTick(tick, index));
         });
     }
 
@@ -73,14 +68,6 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 
         this.subscribe(render  , renderedItems => this.tickRenderer.renderTicks  (tick, tickLevel, renderedItems));
         this.subscribe(unrender, _             => this.tickRenderer.unrenderTicks(tickLevel));
-    }
-
-    private initTickHierarchy(ticks: TimelineTick[], index: number): void
-    {
-        const tick = ticks[index];
-
-        if (index > 0               ) tick.parent.next(ticks[index - 1]);
-        if (index < ticks.length - 1) tick.child .next(ticks[index + 1]);
     }
 
     /** The width of the top level tick in zero-zoom mode. */
