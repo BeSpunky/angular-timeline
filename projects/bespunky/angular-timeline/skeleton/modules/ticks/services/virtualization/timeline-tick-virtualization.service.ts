@@ -3,7 +3,7 @@ import { animationFrameScheduler, combineLatest, Observable } from 'rxjs';
 import { useActivationSwitch, valueInRange } from '@bespunky/angular-timeline/helpers';
 import { TimelineLocationService } from '../../../../services/location/timeline-location.service';
 import { TickItem } from '../../view-models/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../../view-models/types';
+import { DatesBetweenGenerator, DayFactor, TickLabeler, WidthCalculator } from '../../view-models/types';
 import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
 import { TimelineTick } from '../../directives/timeline-tick';
 
@@ -34,6 +34,16 @@ export class TimelineTickVirtualizationService
         );
     }
 
+    public widthFeed(tick: TimelineTick): Observable<WidthCalculator>
+    {
+        return combineLatest([tick.dayFactor, tick.state.dayWidth]).pipe(
+            map(([dayFactor, dayWidth]) => dayFactor instanceof Function 
+                                            ? (date: Date) => dayFactor(date) * dayWidth
+                                            : () => dayWidth
+            )
+        );
+    }
+
     /**
      * Creates a stream that notifies subscribers when the ticks that should be displayed on the screen have changed.
      * A new item array will be generated any time one of the following occurs:
@@ -49,20 +59,20 @@ export class TimelineTickVirtualizationService
      */
     public itemsToRenderFeed(tick: TimelineTick): Observable<TickItem[]>
     {
-        return combineLatest([tick.label, tick.datesBetween, tick.dayFactor, tick.state.dayWidth, tick.state.viewBounds, tick.state.ticksBuffer]).pipe(
+        return combineLatest([tick.label, tick.datesBetween, tick.width, tick.state.dayWidth, tick.state.viewBounds, tick.state.ticksBuffer]).pipe(
             // As item generation depends on multiple subjects, generation might be triggered multiple times for the same change.
             // When zooming, for example, viewBounds + width are changed causing at least 2 notifications.
             // The animationFrameScheduler calculates changes just before next browser content repaint, which prevents flickering and hangs,
             // creating a smoother animation.
             observeOn(animationFrameScheduler),
             useActivationSwitch(tick.shouldRender),
-            map(([label, datesBetween, dayFactor, dayWidth, viewBounds, bufferedTicks]) =>
+            map(([label, datesBetween, width, dayWidth, viewBounds, bufferedTicks]) =>
             {
                 const bufferWidth   = viewBounds.width * bufferedTicks;
                 const startPosition = viewBounds.left  - bufferWidth;
                 const endPosition   = viewBounds.right + bufferWidth;
                 
-                return this.ticksOnScreen(dayWidth, dayFactor, startPosition, endPosition, datesBetween!, label);
+                return this.ticksOnScreen(dayWidth, width, startPosition, endPosition, datesBetween!, label);
             })
         );
     }
@@ -79,13 +89,8 @@ export class TimelineTickVirtualizationService
      * @param {TickLabeler} label The function to use for labeling the items.
      * @returns {TickItem[]} An array of tick items representing the ticks that should be displayed on the screen.
      */
-    public ticksOnScreen(dayWidth: number, dayFactor: DayFactor, startPosition: number, endPosition: number, datesBetween: DatesBetweenGenerator, label: TickLabeler): TickItem[]
+    public ticksOnScreen(dayWidth: number, width: WidthCalculator, startPosition: number, endPosition: number, datesBetween: DatesBetweenGenerator, label: TickLabeler): TickItem[]
     {
-        // Create the function that will generate the width of the ticks
-        const width = dayFactor instanceof Function
-            ? (date: Date) => dayFactor(date) * dayWidth
-            : (          ) => dayWidth;
-        
         // Find the dates corresponding to the bounds of the screen
         const start = this.location.positionToDate(dayWidth, startPosition);
         const end   = this.location.positionToDate(dayWidth, endPosition);

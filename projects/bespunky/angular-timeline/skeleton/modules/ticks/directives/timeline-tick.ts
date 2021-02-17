@@ -2,7 +2,7 @@ import { ViewContainerRef, TemplateRef } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TimelineState } from '../../../services/state/timeline-state';
 import { TickItem } from '../view-models/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
+import { DatesBetweenGenerator, DayFactor, TickLabeler, WidthCalculator } from '../view-models/types';
 
 /**
  * Represents a tick scale and provides tools to easily render it.
@@ -88,6 +88,22 @@ export abstract class TimelineTick
     abstract readonly template: TemplateRef<any>;
 
     /**
+     * Notifies when ticks should render and unrender. Also used as an activation switch for `itemsToRender`.
+     * 
+     * The observable depends on the current zoom level and the defined min/maxZoom properties.
+     *
+     * @abstract
+     * @type {Observable<boolean>}
+     */
+    abstract readonly shouldRender: Observable<boolean>;
+    /**
+     * Provides the function that will be used to calculate the width of a specific tick according to the day factor.
+     *
+     * @abstract
+     * @type {Observable<WidthCalculator>}
+     */
+    abstract readonly width        : Observable<WidthCalculator>;
+    /**
      * Generates the tick items to render according to what fits on the screen.
      * The generated array includes the additional items needed as virtualization buffer for both sides as specified in
      * the `state.ticksBuffer` factor.
@@ -99,15 +115,7 @@ export abstract class TimelineTick
      * @type {Observable<TickItem[]>}
      */
     abstract readonly itemsToRender: Observable<TickItem[]>;
-    /**
-     * Notifies when ticks should render and unrender. Also used as an activation switch for `itemsToRender`.
-     * 
-     * The observable depends on the current zoom level and the defined min/maxZoom properties.
-     *
-     * @abstract
-     * @type {Observable<boolean>}
-     */
-    abstract readonly shouldRender: Observable<boolean>;
+
     /**
      * The object describing the current state of the timeline which defined the tick.
      *

@@ -1,7 +1,7 @@
 import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TickItem } from '../view-models/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler } from '../view-models/types';
+import { DatesBetweenGenerator, DayFactor, TickLabeler, WidthCalculator } from '../view-models/types';
 import { TimelineTickVirtualizationService } from '../services/virtualization/timeline-tick-virtualization.service';
 import { TimelineTick } from './timeline-tick';
 import { TimelineState } from '../../../services/state/timeline-state';
@@ -20,9 +20,10 @@ import { TimelineState } from '../../../services/state/timeline-state';
 })
 export class TimelineTickDirective extends TimelineTick
 {
-    public readonly itemsToRender: Observable<TickItem[]>;
     public readonly shouldRender : Observable<boolean>;
-
+    public readonly width        : Observable<WidthCalculator>;
+    public readonly itemsToRender: Observable<TickItem[]>;
+    
     constructor(
         public  readonly view      : ViewContainerRef,
         public  readonly template  : TemplateRef<any>,
@@ -33,6 +34,7 @@ export class TimelineTickDirective extends TimelineTick
         super();
 
         this.shouldRender  = this.virtualize.shouldRenderFeed(this);
+        this.width         = this.virtualize.widthFeed(this);
         this.itemsToRender = this.virtualize.itemsToRenderFeed(this);
     }
 
