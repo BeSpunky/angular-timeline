@@ -116,18 +116,11 @@ export class TimelineTickRendererService extends TimelineTickRenderer
     private recycleViewsAndAggregateChanges(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
     {
         // Get the difference between existing and new items
-        const changed = renderedTicks.length - newTickItems.length;
+        const changed = newTickItems.length - renderedTicks.length;
 
         let updateCount = renderedTicks.length;
 
-        if (changed > 0) // New tick count is lower than the existing one
-        {
-            // Unrender exeeding ticks
-            this.unrenderRemovedTicks(renderedTicks, -changed);
-            // Use the new length as the limit for view recycling
-            updateCount = renderedTicks.length;
-        }
-        else if (changed < 0) // New tick count is greater than the existing one
+        if (changed > 0) // New tick count is greater than the existing one
         {
             // Use all existing views as the limit for view recycling
             updateCount = renderedTicks.length;
@@ -135,6 +128,13 @@ export class TimelineTickRendererService extends TimelineTickRenderer
             const addedTicks = this.renderMissingTicks(newTickItems, changed, tick);
             // Add the newly rendered ticks to the rendered views array
             renderedTicks.push(...addedTicks);
+        }
+        else if (changed < 0) // New tick count is lower than the existing one
+        {
+            // Unrender exeeding ticks
+            this.unrenderUnusedTicks(renderedTicks, changed);
+            // Use the new length as the limit for view recycling
+            updateCount = renderedTicks.length;
         }
         
         // Run the update from start to the upper limit
@@ -162,11 +162,11 @@ export class TimelineTickRendererService extends TimelineTickRenderer
      *
      * @private
      * @param {RenderedTick[]} renderedTicks The existing ticks and their views.
-     * @param {number} removedCount The number of items to unrender from the end of the array.
+     * @param {number} removedCount The number of items to unrender from the end of the array. **Must be negative**.
      */
-    private unrenderRemovedTicks(renderedTicks: RenderedTick[], removedCount: number): void
+    private unrenderUnusedTicks(renderedTicks: RenderedTick[], removedCount: number): void
     {
-        renderedTicks.splice(-removedCount).forEach(tick => this.unrenderTick(tick));
+        renderedTicks.splice(removedCount).forEach(tick => this.unrenderTick(tick));
     }
 
     /**
