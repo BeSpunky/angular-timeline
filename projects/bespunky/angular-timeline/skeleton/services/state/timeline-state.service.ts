@@ -15,10 +15,20 @@ export class TimelineStateService extends TimelineState
         this.dayWidth = this.dayWidthFeed();
     }
 
+    /**
+     * Creates a stream that notifies of changes to the width of the one day in pixels.
+     * The width is determined by `baseTickSize`, `zoom` and `zoomDeltaFactor`.
+     * 
+     * @see /skeleton/services/control/readme.md for more information about zooming.
+     *
+     * @private
+     * @param {TimelineTick} tick The tick scale for which to create the stream.
+     * @returns {Observable<number>} A stream that notifies of changes to the width of the one day in pixels.
+     */
     private dayWidthFeed(): Observable<number>
     {
         return combineLatest([this.baseTickSize, this.zoom, this.zoomDeltaFactor]).pipe(
-            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom - 1))
+            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom))
         );
     }
 

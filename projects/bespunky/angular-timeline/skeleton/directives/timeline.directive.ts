@@ -8,28 +8,49 @@ import { TimelineRendererProvider } from '../services/render/timeline-renderer.p
 import { TimelineRenderer } from '../services/render/timeline-renderer';
 import { TimelineControl } from '../services/control/timeline-control';
 import { TimelineControlProvider } from '../services/control/timeline-control.provider';
-import { TimelineTickRendererProvider } from '../modules/ticks/services/render/timeline-tick-renderer.provider';
 import { TimelineTickDirective } from '../modules/ticks/directives/timeline-tick.directive';
 import { TimelineTick } from '../modules/ticks/directives/timeline-tick';
-import { TimelineTickRenderer } from '../modules/ticks/services/render/timeline-tick-renderer';
+import { TimelineTickRendererService } from '../modules/ticks/services/render/timeline-tick-renderer.service';
 
+/**
+ * Adds timeline functionality to an element.
+ *
+ * @export
+ * @class TimelineDirective
+ * @extends {Destroyable}
+ * @implements {AfterViewInit}
+ */
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider, TimelineTickRendererProvider],
+    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
-    @ContentChildren(TimelineTickDirective) public ticks!: QueryList<TimelineTick>;
+    @ContentChildren(TimelineTickDirective) private ticks!: QueryList<TimelineTick>;
     
+    /**
+     * The view bounds currently focused on by the user represented in a format compatible with an SVG viewBox.
+     *
+     * @type {Observable<string>}
+     */
     public readonly svgViewBox: Observable<string>;
     
+    /**
+     * Creates an instance of TimelineDirective.
+     * 
+     * @param {ChangeDetectorRef} changes
+     * @param {TimelineState} state The state of the timeline.
+     * @param {TimelineControl} control
+     * @param {TimelineRenderer} renderer
+     * @param {TimelineTickRenderer} tickRenderer
+     */
     constructor(
         private changes     : ChangeDetectorRef,
         public  state       : TimelineState,
         private control     : TimelineControl,
         private renderer    : TimelineRenderer,
-        private tickRenderer: TimelineTickRenderer
+        private tickRenderer: TimelineTickRendererService
     )
     {
         super();
@@ -50,19 +71,14 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 
         this.subscribe(tickUpdates, ticks =>
         {
-            ticks.forEach((tick, index) =>
-            {
-                this.initTickHierarchy(ticks, index);
-                
-                this.observeTick(tick, index);
-            });
+            ticks.forEach((tick, index) => this.observeTick(tick, index));
         });
     }
 
     private observeTick(tick: TimelineTick, tickLevel: number): void
     {
         // If ticks were changes (e.g. an ngIf or ngFor creates them) then takeUntil will unsubscribe from the render observable
-        const render = tick.renderedItems.pipe(
+        const render = tick.itemsToRender.pipe(
             takeUntil(this.ticks.changes)
         );
 
@@ -75,21 +91,19 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         this.subscribe(unrender, _             => this.tickRenderer.unrenderTicks(tickLevel));
     }
 
-    private initTickHierarchy(ticks: TimelineTick[], index: number): void
-    {
-        const tick = ticks[index];
-
-        if (index > 0               ) tick.parent.next(ticks[index - 1]);
-        if (index < ticks.length - 1) tick.child .next(ticks[index + 1]);
-    }
-
-    /** The width of the top level tick in zero-zoom mode. */
+    /**
+     * Sets the width of the the day level tick. All tick width and position calculations are based on this size.
+     * Default is 1. A larger size means the initial size of your ticks will be larger.    
+     */
     @Input() public set baseTickSize(value: number)
     {
         this.state.baseTickSize.next(value);
     }
 
-    /** The width of the top level tick in zero-zoom mode. */
+    /**
+     * The level of zoom to apply to when rendering the timeline. Default is 1.
+     * A larger number means zooming-in; A smaller number means zooming-out.
+     */
     @Input() public set zoom(value: number)
     {
         this.state.zoom.next(value);

@@ -1,19 +1,36 @@
 import { Injectable } from '@angular/core';
-import { TimelineState } from '../../../../services/state/timeline-state';
 import { TimelineTick } from '../../directives/timeline-tick';
 import { RenderedTick } from '../../view-models/rendered-tick';
 import { TickContext, TickViewContext } from '../../view-models/tick-context';
 import { TickItem } from '../../view-models/tick-item';
 import { TimelineTickRenderer } from './timeline-tick-renderer';
 
-@Injectable()
+/**
+ * Provides tools for handling tick rendering.
+ *
+ * @export
+ * @class TimelineTickRendererService
+ * @extends {TimelineTickRenderer}
+ */
+@Injectable({ providedIn: 'root' })
 export class TimelineTickRendererService extends TimelineTickRenderer
 {
-    constructor(private state: TimelineState)
-    {
-        super();
-    }
+    /**
+     * A map of all rendered tick views for each tick level. Used for view recycling.
+     *
+     * @type {{ [tickLevel: number]: RenderedTick[] }}
+     */
+    private ticksInView: { [tickLevel: number]: RenderedTick[] } = {};
     
+    /**
+     * Renders the provided tick items and stores them in the `ticksInView` map.
+     * Existing views are recycled and their context gets updated.
+     *
+     * @param {TimelineTick} tick The tick definition to use when rendering.
+     * @param {number} tickLevel A zero-based number representing the level of the ticks to render. Zero represents the
+     * top level tick. 
+     * @param {TickItem[]} newTickItems The new items representing the ticks to render.
+     */
     public renderTicks(tick: TimelineTick, tickLevel: number, newTickItems: TickItem[]): void
     {
         const renderedViews = this.ticksInView[tickLevel] || [];
@@ -22,6 +39,12 @@ export class TimelineTickRendererService extends TimelineTickRenderer
         this.ticksInView[tickLevel] = this.recycleViewsAndAggregateChanges(tick, renderedViews , newTickItems);
     }
 
+    /**
+     * Unrenders all previously rendered ticks for the specified tick level.
+     *
+     * @param {number} tickLevel A zero-based number representing the level of ticks to unrender.
+     * @returns {void}
+     */
     public unrenderTicks(tickLevel: number): void
     {
         if (!this.ticksInView[tickLevel]) return;
@@ -44,54 +67,13 @@ export class TimelineTickRendererService extends TimelineTickRenderer
         tickView?.view.destroy();
     }
 
-    private updateRenderedTicks(renderedTicks: RenderedTick[], newTickItems: TickItem[], count: number)
-    {
-        for (let i = 0; i < count; ++i)
-        {
-            const renderedTick = renderedTicks[i];
-            const newTickItem  = newTickItems [i];
-
-            renderedTick.item = newTickItem;
-            renderedTick.context.update(newTickItem);
-        }
-    }
-
-    private recycleViewsAndAggregateChanges(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
-    {
-        const changed = renderedTicks.length - newTickItems.length;
-
-        let updateCount = renderedTicks.length;
-
-        if (changed > 0) // Items were removed
-        {
-            this.unrenderRemovedTicks(renderedTicks, changed);
-
-            updateCount = renderedTicks.length;
-        }
-        else if (changed < 0) // Items were added
-        {
-            const addedTicks = this.renderMissingTicks(newTickItems, changed, tick);
-
-            updateCount = renderedTicks.length;
-                
-            renderedTicks.push(...addedTicks);
-        }
-        
-        this.updateRenderedTicks(renderedTicks, newTickItems, updateCount);
-
-        return renderedTicks;
-    }
-
-    private renderMissingTicks(newTickItems: TickItem[], changed: number, tick: TimelineTick)
-    {
-        return newTickItems.slice(changed).map(item => this.renderTick(tick, item));
-    }
-
-    private unrenderRemovedTicks(renderedTicks: RenderedTick[], removedCount: number)
-    {
-        renderedTicks.splice(-removedCount).forEach(tick => this.unrenderTick(tick));
-    }
-
+    /**
+     * Creates the context to provide when rendering a tick.
+     *
+     * @private
+     * @param {TickItem} item The item representing the tick.
+     * @returns {TickViewContext} The template context containing the tick information.
+     */
     private createViewContext(item: TickItem): TickViewContext
     {
         const context = new TickContext(item);
@@ -102,5 +84,109 @@ export class TimelineTickRendererService extends TimelineTickRenderer
             // Enable specific variables (e.g. `let-position`, `let-index`)
             ...context
         };
+    }
+    
+    /**
+     * Renderes the new tick items efficiently by reusing and updating previously rendered views.
+     *
+     * Existing views will be updated from left to right:
+     *          0  1  2  3  4  5  6
+     * views:  [x, x, x, x, x]
+     * items:  [y, y, y, y, y, y, y]
+     * result: [y, y, y, y, y]
+     * 
+     * Exeeding items be rendered in new views:
+     *          0  1  2  3  4  5  6
+     * views:  [x, x, x, x, x]
+     * items:  [y, y, y, y, y, y, y]
+     * result: [y, y, y, y, y, y, y]
+     * 
+     * Unused views will be unrendered:
+     *          0  1  2  3  4  5  6
+     * views:  [x, x, x, x, x]
+     * items:  [y, y, y]
+     * result: [y, y, y]
+     *  
+     * @private
+     * @param {TimelineTick} tick The tick definition to render.
+     * @param {RenderedTick[]} renderedTicks The existing tick with their previously rendered views.
+     * @param {TickItem[]} newTickItems The new tick items to render.
+     * @returns {RenderedTick[]} The new rendered items with their views.
+     */
+    private recycleViewsAndAggregateChanges(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
+    {
+        // Get the difference between existing and new items
+        const changed = newTickItems.length - renderedTicks.length;
+
+        let updateCount = renderedTicks.length;
+
+        if (changed > 0) // New tick count is greater than the existing one
+        {
+            // Use all existing views as the limit for view recycling
+            updateCount = renderedTicks.length;
+            // Render new views with the last items from the new ticks
+            const addedTicks = this.renderMissingTicks(newTickItems, changed, tick);
+            // Add the newly rendered ticks to the rendered views array
+            renderedTicks.push(...addedTicks);
+        }
+        else if (changed < 0) // New tick count is lower than the existing one
+        {
+            // Unrender exeeding ticks
+            this.unrenderUnusedTicks(renderedTicks, changed);
+            // Use the new length as the limit for view recycling
+            updateCount = renderedTicks.length;
+        }
+        
+        // Run the update from start to the upper limit
+        this.updateRenderedTicks(renderedTicks, newTickItems, updateCount);
+
+        return renderedTicks;
+    }
+
+    /**
+     * Grabs new tick items from the end and renders new views for them.
+     *
+     * @private
+     * @param {TickItem[]} newTickItems The new tick items to be rendered.
+     * @param {number} addedCount The number of items to take from the end of the array.
+     * @param {TimelineTick} tick The tick definition to render.
+     * @returns {RenderedTick[]} The newly rendered ticks and thier views.
+     */
+    private renderMissingTicks(newTickItems: TickItem[], addedCount: number, tick: TimelineTick): RenderedTick[]
+    {
+        return newTickItems.slice(-addedCount).map(item => this.renderTick(tick, item));
+    }
+
+    /**
+     * Grabs existing ticks from the end of the array and unrenders them.
+     *
+     * @private
+     * @param {RenderedTick[]} renderedTicks The existing ticks and their views.
+     * @param {number} removedCount The number of items to unrender from the end of the array. **Must be negative**.
+     */
+    private unrenderUnusedTicks(renderedTicks: RenderedTick[], removedCount: number): void
+    {
+        renderedTicks.splice(removedCount).forEach(tick => this.unrenderTick(tick));
+    }
+
+    /**
+     * Walks through existing ticks and updates their template context with a new information from the new ticks.
+     * Ticks are updated from left to right until the `count` items have been updated.
+     *
+     * @private
+     * @param {RenderedTick[]} renderedTicks The existing ticks to updated.
+     * @param {TickItem[]} newTickItems The new tick items to take new information from.
+     * @param {number} count The number of items to copy from the new ticks to the existing ones.
+     */
+    private updateRenderedTicks(renderedTicks: RenderedTick[], newTickItems: TickItem[], count: number)
+    {
+        for (let i = 0; i < count; ++i)
+        {
+            const renderedTick = renderedTicks[i];
+            const newTickItem  = newTickItems [i];
+
+            renderedTick.item = newTickItem;
+            renderedTick.context.update(newTickItem);
+        }
     }
 }
