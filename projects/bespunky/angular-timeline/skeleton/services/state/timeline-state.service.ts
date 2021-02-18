@@ -28,7 +28,7 @@ export class TimelineStateService extends TimelineState
     private dayWidthFeed(): Observable<number>
     {
         return combineLatest([this.baseTickSize, this.zoom, this.zoomDeltaFactor]).pipe(
-            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom - 1))
+            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom))
         );
     }
 
