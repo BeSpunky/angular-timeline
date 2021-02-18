@@ -8,6 +8,10 @@ import { ViewBounds } from '../../view-models/view-bounds';
 import { TimelineState } from '../state/timeline-state';
 import { TimelineControl } from './timeline-control';
 
+/**
+ ** Read Readme.md to understand how zooming works.
+ **/
+
 // TODO: Reverse deltas for RTL rendering
 @Injectable()
 export class TimelineControlService extends TimelineControl
