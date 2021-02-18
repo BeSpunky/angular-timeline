@@ -3,7 +3,7 @@ import { animationFrameScheduler, combineLatest, Observable } from 'rxjs';
 import { useActivationSwitch, valueInRange } from '@bespunky/angular-timeline/helpers';
 import { TimelineLocationService } from '../../../../services/location/timeline-location.service';
 import { TickItem } from '../../view-models/tick-item';
-import { DatesBetweenGenerator, DayFactor, TickLabeler, WidthCalculator } from '../../view-models/types';
+import { DatesBetweenGenerator, TickLabeler, WidthCalculator } from '../../view-models/types';
 import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
 import { TimelineTick } from '../../directives/timeline-tick';
 
