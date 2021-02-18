@@ -127,7 +127,7 @@ There is no sense in drawing an infinite timeline. Even if the developer would l
 
 The timeline uses the view box to determine what to draw following these steps:
 1. Define the bounds of the view box (the camera) to understand what part of the drawing is being focused on right now.
-2. Expand those bounds by the percentage defined in the buffer factor defined in `TimelineState.
+2. Expand those bounds by the percentage defined in the buffer factor defined in `TimelineState.virtualizationBuffer`.
 3. Calculate the dates that fall on the bounds positions after buffer expension.
 4. Load data that falls between the dates of the bounds.
 5. Render the selected data.
