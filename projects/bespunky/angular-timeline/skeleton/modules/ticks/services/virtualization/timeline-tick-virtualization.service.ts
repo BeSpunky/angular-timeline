@@ -52,23 +52,23 @@ export class TimelineTickVirtualizationService
      * - The tick dayFactor has been updated
      * - The timeline zoom level has changed
      * - The timeline view center has changed
-     * - The timeline ticks buffer size has changed
+     * - The timeline virtualization buffer size has changed
      *
      * @param {TimelineTick} tick The tick scale for which to create the stream.
      * @returns {Observable<TickItem[]>} A stream that notifies subscribers when the ticks that should be displayed on the screen have changed.
      */
     public itemsToRenderFeed(tick: TimelineTick): Observable<TickItem[]>
     {
-        return combineLatest([tick.label, tick.datesBetween, tick.width, tick.state.dayWidth, tick.state.viewBounds, tick.state.ticksBuffer]).pipe(
+        return combineLatest([tick.label, tick.datesBetween, tick.width, tick.state.dayWidth, tick.state.viewBounds, tick.state.virtualizationBuffer]).pipe(
             // As item generation depends on multiple subjects, generation might be triggered multiple times for the same change.
             // When zooming, for example, viewBounds + width are changed causing at least 2 notifications.
             // The animationFrameScheduler calculates changes just before next browser content repaint, which prevents flickering and hangs,
             // creating a smoother animation.
             observeOn(animationFrameScheduler),
             useActivationSwitch(tick.shouldRender),
-            map(([label, datesBetween, width, dayWidth, viewBounds, bufferedTicks]) =>
+            map(([label, datesBetween, width, dayWidth, viewBounds, virtualizationBuffer]) =>
             {
-                const bufferWidth   = viewBounds.width * bufferedTicks;
+                const bufferWidth   = viewBounds.width * virtualizationBuffer;
                 const startPosition = viewBounds.left  - bufferWidth;
                 const endPosition   = viewBounds.right + bufferWidth;
                 
