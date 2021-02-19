@@ -38,6 +38,14 @@
 
         <text [attr.x]="position | async" y="220" dx="5" font-size="20">{{label | async}}</text>
     </g>
+
+    <g>
+        <line [attr.x1]="timeline.state.viewCenter | async" y1="0"
+              [attr.x2]="timeline.state.viewCenter | async" y2="700"
+              stroke-width="3" stroke="purple"></line>
+
+        <text [attr.x]="timeline.state.viewCenter | async" y="20" dx="5" font-size="20">{{timeline.currentDate | async}}</text>
+    </g>
 </svg>
 
 <div style="text-align: center;">
