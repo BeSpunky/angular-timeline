@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, publishBehavior } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, publishBehavior, publishReplay, shareReplay } from 'rxjs/operators';
 import { TimelineState } from './timeline-state';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class TimelineStateService extends TimelineState
             // Make this observable remember and stream the latest value to each new subscriber.
             // This way the width can be resolved instantly when the value is needed for some immidiate calcualtion
             // like in TimelineCamera.moveTo().
-            publishBehavior(this.baseTickSize.value)
+            shareReplay(1)
         );
     }
 

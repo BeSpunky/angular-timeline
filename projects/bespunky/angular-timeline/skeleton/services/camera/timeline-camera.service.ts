@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map, mergeMap, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { TimelineLocationService } from '../location/timeline-location.service';
 import { TimelineState } from '../state/timeline-state';
 import { TimelineCamera } from './timeline-camera';
-
 @Injectable()
 export class TimelineCameraService extends TimelineCamera
 {
@@ -42,6 +41,7 @@ export class TimelineCameraService extends TimelineCamera
     
     public zoomOn(date: Date, amount: number): void;
     public zoomOn(position: number, amount: number): void;
+    public zoomOn(positionOrDate: number | Date, amount: number): void;
     public zoomOn(positionOrDate: number | Date, amount: number): void
     {
         positionOrDate instanceof Date ? this.zoomOnDate(positionOrDate, amount) : this.zoomOnPosition(positionOrDate, amount);
@@ -53,7 +53,7 @@ export class TimelineCameraService extends TimelineCamera
 
         const zoomFactor = this.calculateZoomFactor(Math.sign(amount));
         
-        this.moveToPosition(this.calculateViewCenterZoomedToPosition(position, zoomFactor * amount));
+        this.moveToPosition(this.calculateViewCenterZoomedToPosition(position, zoomFactor * Math.abs(amount)));
     }
 
     private zoomOnDate(date: Date, amount: number): void
@@ -74,25 +74,21 @@ export class TimelineCameraService extends TimelineCamera
     private calculateViewCenterZoomedToPosition(position: number, zoomedBy: number): number
     {
         /** The idea is to:
-         * 1. Calculate the current distance between the mouse and the viewCenter, so the same distance could be applied later-on.
-         * 2. Calculate where the pixel that was under the mouse will be AFTER zooming. This will be the position multiplied by the factor.
-         *    If the image grew by 15%, the pixel under the mouse did the same.
-         * 3. Subtract the current distance from the new mouse position to receive the new viewCenter.
+         * 1. Calculate the current distance between the position and the viewCenter, so the same distance could be applied later-on.
+         * 2. Calculate where the pixel that was under the position will be AFTER zooming. This will be the position multiplied by the factor.
+         *    If the image grew by 15%, the pixel under the position did the same.
+         * 3. Subtract the current distance from the new position to receive the new viewCenter.
          */
 
-        /** The current left position of the viewbox relative to the complete drawing. */
-        const cameraX    = this.state.viewBounds.value.left;
         /** The current center position of the viewbox relative to the complete drawing. */
         const viewCenter = this.state.viewCenter.value;
 
-        /** The mouse position relative to the full drawing. */
-        const drawingMouseX   = cameraX + position;
-        /** The distance between the mouse and the center before zooming. This should be kept after zoom. */
-        const dxMouseToCenter = drawingMouseX - viewCenter;
-        /** The mouse position after zooming. */
-        const newMouseX       = drawingMouseX * zoomedBy;
-        // The new center be relative to the new mouse position after zooming?
-        return newMouseX - dxMouseToCenter;
+        /** The distance between the position and the center before zooming. This should be kept after zoom. */
+        const dxPositionToCenter = position - viewCenter;
+        /** The new position of the pixel under the specified point AFTER zooming. */
+        const newPosition        = position * zoomedBy;
+        // The new center be relative to the new position after zooming
+        return newPosition - dxPositionToCenter;
     }
 
     private dateToPosition(date: Date): Observable<number>
