@@ -23,7 +23,7 @@ import { TimelineTickRendererService } from '../modules/ticks/services/render/ti
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider],
+    providers: [TimelineStateProvider, TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
