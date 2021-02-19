@@ -11,6 +11,7 @@ import { TimelineControlProvider } from '../services/control/timeline-control.pr
 import { TimelineTickDirective } from '../modules/ticks/directives/timeline-tick.directive';
 import { TimelineTick } from '../modules/ticks/directives/timeline-tick';
 import { TimelineTickRendererService } from '../modules/ticks/services/render/timeline-tick-renderer.service';
+import { TimelineCameraProvider } from '../services/camera/timeline-camera.provider';
 
 /**
  * Adds timeline functionality to an element.
@@ -23,7 +24,7 @@ import { TimelineTickRendererService } from '../modules/ticks/services/render/ti
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineControlProvider, TimelineRendererProvider],
+    providers: [TimelineStateProvider, TimelineCameraProvider, TimelineControlProvider, TimelineRendererProvider],
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {

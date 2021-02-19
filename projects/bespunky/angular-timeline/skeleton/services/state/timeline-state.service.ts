@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, publishBehavior, publishReplay, shareReplay } from 'rxjs/operators';
 import { TimelineState } from './timeline-state';
 
 @Injectable()
@@ -28,7 +28,11 @@ export class TimelineStateService extends TimelineState
     private dayWidthFeed(): Observable<number>
     {
         return combineLatest([this.baseTickSize, this.zoom, this.zoomDeltaFactor]).pipe(
-            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom))
+            map(([baseTickSize, zoom, zoomDeltaFactor]) => baseTickSize * Math.pow(zoomDeltaFactor, zoom)),
+            // Make this observable remember and stream the latest value to each new subscriber.
+            // This way the width can be resolved instantly when the value is needed for some immidiate calcualtion
+            // like in TimelineCamera.moveTo().
+            shareReplay(1)
         );
     }
 

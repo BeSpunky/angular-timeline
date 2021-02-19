@@ -11,7 +11,7 @@ export abstract class TimelineState
     public readonly virtualizationBuffer: BehaviorSubject<number>     = new BehaviorSubject(0.5);
     public readonly viewCenter          : BehaviorSubject<number>     = new BehaviorSubject(0);
     public readonly viewBounds          : BehaviorSubject<ViewBounds> = new BehaviorSubject(new ViewBounds(0, 0, 0, 0));
-    public readonly moveDeltaFactor     : BehaviorSubject<number>     = new BehaviorSubject(0.2);
+    public readonly moveAmount          : BehaviorSubject<number>     = new BehaviorSubject(3);
     
     abstract readonly dayWidth: Observable<number>;
 

@@ -1,12 +1,17 @@
 import { Key } from 'ts-key-enum';
 import { ElementRef, Injectable } from '@angular/core';
-import { combineLatest, fromEvent, merge, Observable } from 'rxjs';
-import { filter, map, mapTo, tap } from 'rxjs/operators';
+import { combineLatest, fromEvent, merge, Observable, OperatorFunction, pipe, UnaryFunction } from 'rxjs';
+import { filter, map, mapTo, tap, withLatestFrom } from 'rxjs/operators';
 
 import { useActivationSwitch } from '@bespunky/angular-timeline/helpers';
 import { ViewBounds } from '../../view-models/view-bounds';
 import { TimelineState } from '../state/timeline-state';
 import { TimelineControl } from './timeline-control';
+import { TimelineCamera } from '../camera/timeline-camera';
+
+type EventWithModifiers                             = { ctrlKey: boolean, altKey: boolean, shiftKey: boolean, [value: string]: any };
+type AcceleratedEvent<T extends EventWithModifiers> = [event: T, amount: number];
+type CameraZoomParams                               = [position: number | Date, amount: number];
 
 /**
  ** Read Readme.md to understand how zooming works.
@@ -19,7 +24,7 @@ export class TimelineControlService extends TimelineControl
     private readonly wheel  : Observable<WheelEvent>;
     private readonly keydown: Observable<KeyboardEvent>;
     
-    constructor(private state: TimelineState, private element: ElementRef)
+    constructor(private state: TimelineState, private camera: TimelineCamera, private element: ElementRef)
     {
         super();
 
@@ -43,6 +48,39 @@ export class TimelineControlService extends TimelineControl
         this.subscribe(this.viewBoundsFeed());
     }
 
+    private moveCamera<T extends EventWithModifiers>(getAmount: (event: T) => number): UnaryFunction<Observable<T>, Observable<AcceleratedEvent<T>>>
+    {
+        return pipe(
+            this.accelerateWithKeyboard<T>(getAmount),
+            tap(([e, amount]) => this.camera.move(amount))
+        );
+    }
+
+    private zoomCamera<T extends EventWithModifiers>(getPosition: (value: T, viewBounds: ViewBounds) => number, getAmount: (event: T) => number): UnaryFunction<Observable<T>, Observable<CameraZoomParams>>
+    {
+        return pipe(
+            this.accelerateWithKeyboard<T>(getAmount),
+            withLatestFrom(this.state.viewBounds),
+            map(([[e, amount], viewBounds]) => [getPosition(e, viewBounds), amount] as CameraZoomParams),
+            tap(([position, amount]) => this.camera.zoomOn(position, amount))
+        );
+    }
+
+    private accelerateWithKeyboard<T extends EventWithModifiers>(getAmount: (event: T) => number): OperatorFunction<T, AcceleratedEvent<T>>
+    {
+        return map<T, AcceleratedEvent<T>>(event =>
+        {
+            let amount = getAmount(event);
+                
+            // TODO: Refactor to make configurable factors as subjects
+            if (event.altKey  ) amount *= 0.5;
+            if (event.ctrlKey ) amount *= 1.5;
+            if (event.shiftKey) amount *= 2;
+            
+            return [event, amount];
+        });
+    }
+
     private wheelFeed(): Observable<WheelEvent>
     {
         return fromEvent<WheelEvent>(this.element.nativeElement, 'wheel');
@@ -53,61 +91,55 @@ export class TimelineControlService extends TimelineControl
         return fromEvent<KeyboardEvent>(document, 'keydown');
     }
 
-    private zoomOnWheelFeed(): Observable<number>
+    private zoomOnWheelFeed(): Observable<CameraZoomParams>
     {
         return this.wheel.pipe(
             useActivationSwitch(this.zoomOnWheel),
             filter(e => e.deltaY !== 0),
-            // -delta reverses zooming so in is positive and out is negative
-            map(e => [-Math.sign(e.deltaY), e.offsetX]),
-            // Movement factor is calculated based on the last size.
-            // Zoom factor is calculated based on the zoom level.
-            map(([zoomDirection, screenMouseX]) => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection, screenMouseX)]),
-            tap(([, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
-            map(([zoomDirection]) => zoomDirection),
-            tap(zoomDirection => this.state.addZoom(zoomDirection)),
+            this.zoomCamera(
+                // Calculate the mouse position relative to the drawing (not the viewport).
+                (e, viewBounds) => viewBounds.left + e.offsetX,
+                // Reverse deltaY so zooming in is positive and out is negative.
+                e               => -Math.sign(e.deltaY))
         );
     }
 
-    private moveOnWheelFeed(): Observable<number>
+    private moveOnWheelFeed(): Observable<AcceleratedEvent<WheelEvent>>
     {
         return this.wheel.pipe(
             useActivationSwitch(this.moveOnWheel),
             filter(e => e.deltaX !== 0),
-            map(e => Math.round(e.deltaX * this.state.moveDeltaFactor.value)),
-            tap(delta => this.state.addViewCenter(delta))
+            this.moveCamera(e => Math.sign(e.deltaX) * this.state.moveAmount.value)
         );
     }
 
-    private zoomOnKeyboardFeed(): Observable<number>
+    private zoomOnKeyboardFeed(): Observable<CameraZoomParams>
     {
-        const keydown = this.keydown.pipe(
-            useActivationSwitch(this.zoomOnKeyboard),
-            tap(console.log)
-        );
+        const keydown = this.keydown.pipe(useActivationSwitch(this.zoomOnKeyboard));
 
-        const zoomIn  = keydown.pipe(filter(e => e.key === Key.ArrowUp  ), mapTo(1));
-        const zoomOut = keydown.pipe(filter(e => e.key === Key.ArrowDown), mapTo(-1));
-
+        const zoomIn  = keydown.pipe(filter(e => e.key === Key.ArrowUp  ), tap((e: any) => e.zoomAmount =  1));
+        const zoomOut = keydown.pipe(filter(e => e.key === Key.ArrowDown), tap((e: any) => e.zoomAmount = -1));
+        
         return merge(zoomIn, zoomOut).pipe(
-            map(zoomDirection => [zoomDirection, this.calculateViewCenterZoomedToPoint(zoomDirection)]),
-            tap(([, newViewCenter]) => this.state.viewCenter.next(newViewCenter)),
-            map(([zoomDirection]) => zoomDirection),
-            tap(zoomDirection => this.state.addZoom(zoomDirection))
+            this.zoomCamera(
+                // There is no mouse point or anything so zoom around the center of the view
+                (_, viewBounds) => viewBounds.viewCenter,
+                e               => e.zoomAmount
+            )
         );
-    }    
+    }
 
-    private moveOnKeyboardFeed(): Observable<number>
+    private moveOnKeyboardFeed(): Observable<AcceleratedEvent<KeyboardEvent>>
     {
         const keydown = this.keydown.pipe(
             useActivationSwitch(this.moveOnKeyboard)
         );
 
-        const moveRight = keydown.pipe(filter(e => e.key === Key.ArrowLeft ), map(e => -this.getKeyboardModifiedFactor(e)));
-        const moveLeft  = keydown.pipe(filter(e => e.key === Key.ArrowRight), map(e => this.getKeyboardModifiedFactor(e)));
+        const moveRight = keydown.pipe(filter(e => e.key === Key.ArrowLeft ), tap((e: any) => e.moveAmount = -this.state.moveAmount.value));
+        const moveLeft  = keydown.pipe(filter(e => e.key === Key.ArrowRight), tap((e: any) => e.moveAmount =  this.state.moveAmount.value));
 
         return merge(moveLeft, moveRight).pipe(
-            tap(movement => this.state.addViewCenter(movement * 5)) // TODO: Replace 5 with configurable factor subject
+            this.moveCamera((e: any) => e.moveAmount * this.state.moveAmount.value)
         );
     }
     
@@ -117,46 +149,5 @@ export class TimelineControlService extends TimelineControl
             map(([viewPortWidth, viewPortHeight, zoom, viewCenter]) => new ViewBounds(viewPortWidth, viewPortHeight, zoom, viewCenter)),
             tap(viewBounds => this.state.viewBounds.next(viewBounds))
         );
-    }
-    
-    private calculateViewCenterZoomedToPoint(zoomDirection: number, zoomedScreenX: number = this.state.viewPortWidth.value / 2): number
-    {
-        /** The idea is to:
-         * 1. Calculate the current distance between the mouse and the viewCenter, so the same distance could be applied later-on.
-         * 2. Calculate where the pixel that was under the mouse will be AFTER zooming. This will be the position multiplied by the factor.
-         *    If the image grew by 15%, the pixel under the mouse did the same.
-         * 3. Subtract the current distance from the new mouse position to receive the new viewCenter.
-         */
-
-        let factor = this.state.zoomDeltaFactor.value;
-        
-        // When zooming out, flip the factor to shrink instead of grow
-        if (zoomDirection < 0) factor = 1 / factor;
-
-        /** The current left position of the viewbox relative to the complete drawing. */
-        const cameraX = this.state.viewBounds.value.left;
-        /** The current center position of the viewbox relative to the complete drawing. */
-        const viewCenter = this.state.viewCenter.value;
-
-        /** The mouse position relative to the full drawing. */
-        const drawingMouseX   = cameraX + zoomedScreenX;
-        /** The distance between the mouse and the center before zooming. This should be kept after zoom. */
-        const dxMouseToCenter = drawingMouseX - viewCenter;
-        /** The mouse position after zooming. */
-        const newMouseX       = drawingMouseX * factor;
-        // The new center be relative to the new mouse position after zooming?
-        return newMouseX - dxMouseToCenter;
-    }
-
-    // TODO: Refactor to make configurable factors as subjects
-    private getKeyboardModifiedFactor(event: KeyboardEvent): number
-    {
-        let factor = 1;
-
-        if (event.altKey  ) factor *= 0.5;
-        if (event.ctrlKey ) factor *= 1.5;
-        if (event.shiftKey) factor *= 2;
-
-        return factor;
     }
 }
