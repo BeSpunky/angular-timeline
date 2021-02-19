@@ -7,6 +7,7 @@
             "label": "Build Library",
             "type": "shell",
             "command": "ng build --watch",
+            "dependsOn": "Sleep",
             "isBackground": true,
             "presentation": {
                 "group": "Development",
@@ -34,7 +35,6 @@
         {
             "label": "Serve Demo",
             "type": "shell",
-            "dependsOn": "Sleep",
             "command": "ng serve --project demo --poll 8888",
             "isBackground": true,
             "presentation": {
