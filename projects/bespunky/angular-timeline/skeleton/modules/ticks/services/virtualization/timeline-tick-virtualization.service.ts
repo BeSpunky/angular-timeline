@@ -6,6 +6,7 @@ import { TickItem } from '../../view-models/tick-item';
 import { DatesBetweenGenerator, TickLabeler, WidthCalculator } from '../../view-models/types';
 import { distinctUntilChanged, map, observeOn } from 'rxjs/operators';
 import { TimelineTick } from '../../directives/timeline-tick';
+import { ViewBounds } from '../../../../view-models/view-bounds';
 
 /**
  * Provides methods for virtualizing tick rendering. This service is designed to determine what ticks should
@@ -72,7 +73,7 @@ export class TimelineTickVirtualizationService
                 const startPosition = viewBounds.left  - bufferWidth;
                 const endPosition   = viewBounds.right + bufferWidth;
                 
-                return this.ticksOnScreen(dayWidth, width, startPosition, endPosition, datesBetween!, label);
+                return this.ticksOnScreen(viewBounds, dayWidth, width, startPosition, endPosition, datesBetween, label);
             })
         );
     }
@@ -89,13 +90,19 @@ export class TimelineTickVirtualizationService
      * @param {TickLabeler} label The function to use for labeling the items.
      * @returns {TickItem[]} An array of tick items representing the ticks that should be displayed on the screen.
      */
-    public ticksOnScreen(dayWidth: number, width: WidthCalculator, startPosition: number, endPosition: number, datesBetween: DatesBetweenGenerator, label: TickLabeler): TickItem[]
+    public ticksOnScreen(viewBounds: ViewBounds, dayWidth: number, width: WidthCalculator, startPosition: number, endPosition: number, datesBetween: DatesBetweenGenerator, label: TickLabeler): TickItem[]
     {
         // Find the dates corresponding to the bounds of the screen
         const start = this.location.positionToDate(dayWidth, startPosition);
         const end   = this.location.positionToDate(dayWidth, endPosition);
 
         // Generate all scale-level dates inside the screen bounds and create a tick item for each
-        return datesBetween(start, end).map(date => new TickItem(this.location.dateToPosition(dayWidth, date), date, width(date), label(date)));
+        return datesBetween(start, end).map(date =>
+        {
+            const position       = this.location.dateToPosition(dayWidth, date);
+            const screenPosition = this.location.toScreenPosition(position, viewBounds);
+
+            return new TickItem(position, screenPosition, date, width(date), label(date));
+        });
     };
 }

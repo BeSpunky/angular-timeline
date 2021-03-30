@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { daysSinceYearZero, MillisecondsInADay, YearZeroJanuaryFirstInMs } from '@bespunky/angular-timeline/helpers';
+import { ViewBounds } from '../../view-models/view-bounds';
 
 /**
  * Provides methods for orientation on the timeline.
@@ -64,5 +65,10 @@ export class TimelineLocationService
     public dateToPosition(dayWidth: number, yOrDate: number | Date, m?: number, d?: number, h?: number, mm?: number, s?: number, ms?: number): number
     {
         return daysSinceYearZero(yOrDate, m, d, h, mm, s, ms) * dayWidth;
+    }
+
+    public toScreenPosition(position: number, { left: viewLeft }: ViewBounds): number
+    {
+        return position - viewLeft;
     }
 }

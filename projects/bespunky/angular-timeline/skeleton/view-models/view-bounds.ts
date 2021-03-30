@@ -8,6 +8,9 @@ export class ViewBounds
     public readonly width! : number;
     public readonly height!: number;
     
+    public readonly screenCenterX: number;
+    public readonly screenCenterY: number;
+
     constructor(
         public readonly viewPortWidth : number,
         public readonly viewPortHeight: number,
@@ -21,10 +24,8 @@ export class ViewBounds
         this.height = viewPortHeight;
         this.right  = this.left + this.width;
         this.bottom = this.top + this.height;
-    }
 
-    public toSvgViewBox(): string
-    {
-        return `${this.left} ${this.top} ${this.width} ${this.height}`;
+        this.screenCenterX = this.viewPortWidth  / 2;
+        this.screenCenterY = this.viewPortHeight / 2;
     }
 }
