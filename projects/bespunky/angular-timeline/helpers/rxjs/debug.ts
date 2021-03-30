@@ -8,8 +8,5 @@ export function debug<T>(message?: string | ((value: T) => string)): (source: Ob
                                               : () => console.log(message)
                 : (value: T) => console.log(value);
 
-    return (source: Observable<T>) => source.pipe(message instanceof Function
-        ? tap((value: T) => console.log(message(value)))
-        : tap(_ => console.log(message))
-    );
+    return (source: Observable<T>) => source.pipe(tap(log));
 }
