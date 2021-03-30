@@ -13,6 +13,13 @@ import { TickItem } from '../../view-models/tick-item';
  */
 export abstract class TimelineTickRenderer extends Destroyable
 {
+    /**
+     * A map of all rendered tick views for each tick level. Used for view recycling.
+     *
+     * @type {{ [tickLevel: number]: RenderedTick[] }}
+     */
+    public readonly ticksInView: { [tickLevel: number]: RenderedTick[] } = {};
+    
     abstract renderTicks(ticks: TimelineTick, tickLevel: number, items: TickItem[]): void;
     abstract unrenderTicks(tickLevel: number): void;
 }

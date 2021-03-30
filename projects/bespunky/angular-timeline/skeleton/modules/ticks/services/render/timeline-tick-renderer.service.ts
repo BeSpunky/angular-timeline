@@ -12,16 +12,9 @@ import { TimelineTickRenderer } from './timeline-tick-renderer';
  * @class TimelineTickRendererService
  * @extends {TimelineTickRenderer}
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class TimelineTickRendererService extends TimelineTickRenderer
 {
-    /**
-     * A map of all rendered tick views for each tick level. Used for view recycling.
-     *
-     * @type {{ [tickLevel: number]: RenderedTick[] }}
-     */
-    private ticksInView: { [tickLevel: number]: RenderedTick[] } = {};
-    
     /**
      * Renders the provided tick items and stores them in the `ticksInView` map.
      * Existing views are recycled and their context gets updated.

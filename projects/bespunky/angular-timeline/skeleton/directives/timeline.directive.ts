@@ -1,19 +1,28 @@
 import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
 import { Destroyable } from '@bespunky/angular-zen/core';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable         } from 'rxjs';
 import { filter, map, startWith, takeUntil } from 'rxjs/operators';
-import { TimelineState } from '../services/state/timeline-state';
-import { TimelineStateProvider } from '../services/state/timeline-state.provider';
-import { TimelineRendererProvider } from '../services/render/timeline-renderer.provider';
-import { TimelineRenderer } from '../services/render/timeline-renderer';
-import { TimelineControl } from '../services/control/timeline-control';
-import { TimelineControlProvider } from '../services/control/timeline-control.provider';
-import { TimelineTickDirective } from '../modules/ticks/directives/timeline-tick.directive';
-import { TimelineTick } from '../modules/ticks/directives/timeline-tick';
-import { TimelineTickRendererService } from '../modules/ticks/services/render/timeline-tick-renderer.service';
-import { TimelineCameraProvider } from '../services/camera/timeline-camera.provider';
-import { TimelineCamera } from '../services/camera/timeline-camera';
-import { TimelineLocationService } from '../services/location/timeline-location.service';
+import { TimelineState                     } from '../services/state/timeline-state';
+import { TimelineStateProvider             } from '../services/state/timeline-state.provider';
+import { TimelineRendererProvider          } from '../services/render/timeline-renderer.provider';
+import { TimelineRenderer                  } from '../services/render/timeline-renderer';
+import { TimelineControl                   } from '../services/control/timeline-control';
+import { TimelineControlProvider           } from '../services/control/timeline-control.provider';
+import { TimelineTickDirective             } from '../modules/ticks/directives/timeline-tick.directive';
+import { TimelineTick                      } from '../modules/ticks/directives/timeline-tick';
+import { TimelineTickRendererProvider      } from '../modules/ticks/services/render/timeline-tick-renderer.provider';
+import { TimelineTickRenderer              } from '../modules/ticks/services/render/timeline-tick-renderer';
+import { TimelineCameraProvider            } from '../services/camera/timeline-camera.provider';
+import { TimelineCamera                    } from '../services/camera/timeline-camera';
+import { TimelineLocationService           } from '../services/location/timeline-location.service';
+
+const providers = [
+    TimelineStateProvider,
+    TimelineCameraProvider,
+    TimelineControlProvider,
+    TimelineRendererProvider,
+    TimelineTickRendererProvider
+];
 
 /**
  * Adds timeline functionality to an element.
@@ -26,7 +35,7 @@ import { TimelineLocationService } from '../services/location/timeline-location.
 @Directive({
     selector : '[timeline]',
     exportAs : 'timeline',
-    providers: [TimelineStateProvider, TimelineCameraProvider, TimelineControlProvider, TimelineRendererProvider],
+    providers: providers,
 })
 export class TimelineDirective extends Destroyable implements AfterViewInit
 {
@@ -56,7 +65,7 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         private camera      : TimelineCamera,
         private location    : TimelineLocationService,
         private renderer    : TimelineRenderer,
-        private tickRenderer: TimelineTickRendererService
+        private tickRenderer: TimelineTickRenderer
     )
     {
         super();
