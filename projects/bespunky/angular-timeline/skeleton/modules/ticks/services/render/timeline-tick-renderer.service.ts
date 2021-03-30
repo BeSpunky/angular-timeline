@@ -81,8 +81,8 @@ export class TimelineTickRendererService extends TimelineTickRenderer
     
     /**
      * Renderes the new tick items efficiently by reusing and updating previously rendered views.
-     *
-     * Existing views will be updated from left to right:
+     * 
+     * ```text
      *          0  1  2  3  4  5  6
      * views:  [x, x, x, x, x]
      * items:  [y, y, y, y, y, y, y]
@@ -99,7 +99,8 @@ export class TimelineTickRendererService extends TimelineTickRenderer
      * views:  [x, x, x, x, x]
      * items:  [y, y, y]
      * result: [y, y, y]
-     *  
+     * ```
+     * 
      * @private
      * @param {TimelineTick} tick The tick definition to render.
      * @param {RenderedTick[]} renderedTicks The existing tick with their previously rendered views.
