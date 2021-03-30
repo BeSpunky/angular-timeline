@@ -41,12 +41,6 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
 {
     @ContentChildren(TimelineTickDirective) private ticks!: QueryList<TimelineTick>;
     
-    /**
-     * The view bounds currently focused on by the user represented in a format compatible with an SVG viewBox.
-     *
-     * @type {Observable<string>}
-     */
-    public readonly svgViewBox : Observable<string>;
     public readonly currentDate: Observable<Date>;
     
     /**
@@ -69,8 +63,6 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     )
     {
         super();
-
-        this.svgViewBox = this.state.viewBounds.pipe(map(viewBounds => viewBounds.toSvgViewBox()));
 
         this.currentDate = combineLatest([this.state.dayWidth, this.state.viewCenter]).pipe(
             map(([dayWidth, viewCenter]) => this.location.positionToDate(dayWidth, viewCenter))
