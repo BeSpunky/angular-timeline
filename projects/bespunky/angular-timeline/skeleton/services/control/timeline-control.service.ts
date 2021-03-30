@@ -1,7 +1,7 @@
 import { Key } from 'ts-key-enum';
 import { ElementRef, Injectable } from '@angular/core';
 import { combineLatest, fromEvent, merge, Observable, OperatorFunction, pipe, UnaryFunction } from 'rxjs';
-import { filter, map, mapTo, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, tap, withLatestFrom } from 'rxjs/operators';
 
 import { useActivationSwitch } from '@bespunky/angular-timeline/helpers';
 import { ViewBounds } from '../../view-models/view-bounds';
