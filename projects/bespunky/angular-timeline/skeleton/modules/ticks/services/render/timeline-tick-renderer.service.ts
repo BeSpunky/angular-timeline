@@ -29,7 +29,7 @@ export class TimelineTickRendererService extends TimelineTickRenderer
         const renderedViews = this.ticksInView[tickLevel] || [];
 
         // Update state with created views
-        this.ticksInView[tickLevel] = this.recycleViewsAndAggregateChanges(tick, renderedViews , newTickItems);
+        this.ticksInView[tickLevel] = this.AggregateChangesAndRecycleViews(tick, renderedViews , newTickItems);
     }
 
     /**
@@ -106,21 +106,18 @@ export class TimelineTickRendererService extends TimelineTickRenderer
      * @param {TickItem[]} newTickItems The new tick items to render.
      * @returns {RenderedTick[]} The new rendered items with their views.
      */
-    private recycleViewsAndAggregateChanges(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
+    private AggregateChangesAndRecycleViews(tick: TimelineTick, renderedTicks: RenderedTick[], newTickItems: TickItem[]): RenderedTick[]
     {
         // Get the difference between existing and new items
         const changed = newTickItems.length - renderedTicks.length;
 
+        // Use all existing views as the limit for view recycling
         let updateCount = renderedTicks.length;
 
         if (changed > 0) // New tick count is greater than the existing one
         {
-            // Use all existing views as the limit for view recycling
-            updateCount = renderedTicks.length;
             // Render new views with the last items from the new ticks
-            const addedTicks = this.renderMissingTicks(newTickItems, changed, tick);
-            // Add the newly rendered ticks to the rendered views array
-            renderedTicks.push(...addedTicks);
+            this.renderMissingTicks(renderedTicks, newTickItems, changed, tick);
         }
         else if (changed < 0) // New tick count is lower than the existing one
         {
@@ -137,17 +134,19 @@ export class TimelineTickRendererService extends TimelineTickRenderer
     }
 
     /**
-     * Grabs new tick items from the end and renders new views for them.
+     * Grabs new tick items from the end, renders new views for them and adds them to the `renderedTicks` array.
      *
      * @private
      * @param {TickItem[]} newTickItems The new tick items to be rendered.
      * @param {number} addedCount The number of items to take from the end of the array.
      * @param {TimelineTick} tick The tick definition to render.
-     * @returns {RenderedTick[]} The newly rendered ticks and thier views.
      */
-    private renderMissingTicks(newTickItems: TickItem[], addedCount: number, tick: TimelineTick): RenderedTick[]
+    private renderMissingTicks(renderedTicks: RenderedTick[], newTickItems: TickItem[], addedCount: number, tick: TimelineTick)
     {
-        return newTickItems.slice(-addedCount).map(item => this.renderTick(tick, item));
+        const addedItems = newTickItems.slice(-addedCount).map(item => this.renderTick(tick, item));
+        
+        // Add the newly rendered ticks to the rendered views array
+        renderedTicks.push(...addedItems);
     }
 
     /**
