@@ -56,7 +56,7 @@ export class TimelineControlService extends TimelineControl
         );
     }
 
-    private zoomCamera<T extends EventWithModifiers>(getPosition: (value: T, viewBounds: ViewBounds) => number, getAmount: (event: T) => number): UnaryFunction<Observable<T>, Observable<CameraZoomParams>>
+    private zoomCamera<T extends EventWithModifiers>(getPosition: (event: T, viewBounds: ViewBounds) => number, getAmount: (event: T) => number): UnaryFunction<Observable<T>, Observable<CameraZoomParams>>
     {
         return pipe(
             this.accelerateWithKeyboard<T>(getAmount),
