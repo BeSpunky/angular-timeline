@@ -113,6 +113,16 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
         this.state.baseTickSize.next(value);
     }
 
+    @Input() public set viewCenter(value: number)
+    {
+        this.state.viewCenter.next(value);
+    }
+
+    public get viewCenter(): number
+    {
+        return this.state.viewCenter.value;
+    }
+
     /**
      * The level of zoom to apply to when rendering the timeline. Default is 1.
      * A larger number means zooming-in; A smaller number means zooming-out.
