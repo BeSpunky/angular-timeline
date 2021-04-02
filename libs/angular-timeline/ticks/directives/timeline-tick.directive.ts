@@ -3,8 +3,8 @@ import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
 
 import { TimelineState                                                            } from '@bespunky/angular-timeline/state';
 import { TickItem, DatesBetweenGenerator, DayFactor, TickLabeler, WidthCalculator } from '@bespunky/angular-timeline/ticks/models';
-import { TimelineTick                      } from './timeline-tick';
-import { TimelineTickVirtualizationService } from '../services/virtualization/timeline-tick-virtualization.service';
+import { TimelineTickVirtualizationService                                        } from '../services/virtualization/timeline-tick-virtualization.service';
+import { TimelineTick                                                             } from './timeline-tick';
 
 
 /**
