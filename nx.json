@@ -30,6 +30,8 @@
     "angular-timeline-e2e": {
       "tags": [],
       "implicitDependencies": ["angular-timeline"]
-    }
+    },
+    "demo": { "tags": [] },
+    "demo-e2e": { "tags": [], "implicitDependencies": ["demo"] }
   }
 }
