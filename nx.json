@@ -26,6 +26,10 @@
       "tags": [],
       "implicitDependencies": ["official-site"]
     },
-    "angular-timeline": { "tags": [] }
+    "angular-timeline": { "tags": [] },
+    "angular-timeline-e2e": {
+      "tags": [],
+      "implicitDependencies": ["angular-timeline"]
+    }
   }
 }
