@@ -149,7 +149,7 @@
     "angular-timeline": {
       "projectType": "library",
       "root": "libs/angular-timeline",
-      "sourceRoot": "libs/angular-timeline/src",
+      "sourceRoot": "libs/angular-timeline",
       "prefix": "bs",
       "architect": {
         "build": {
@@ -168,8 +168,8 @@
           "builder": "@nrwl/linter:eslint",
           "options": {
             "lintFilePatterns": [
-              "libs/angular-timeline/src/**/*.ts",
-              "libs/angular-timeline/src/**/*.html"
+              "libs/angular-timeline/**/*.ts",
+              "libs/angular-timeline/**/*.html"
             ]
           }
         },
