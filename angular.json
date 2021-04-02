@@ -145,6 +145,43 @@
           }
         }
       }
+    },
+    "angular-timeline": {
+      "projectType": "library",
+      "root": "libs/angular-timeline",
+      "sourceRoot": "libs/angular-timeline/src",
+      "prefix": "bs",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/angular:package",
+          "options": {
+            "tsConfig": "libs/angular-timeline/tsconfig.lib.json",
+            "project": "libs/angular-timeline/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/angular-timeline/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/angular-timeline/src/**/*.ts",
+              "libs/angular-timeline/src/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/angular-timeline"],
+          "options": {
+            "jestConfig": "libs/angular-timeline/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
     }
   }
 }
