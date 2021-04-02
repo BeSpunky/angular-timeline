@@ -15,8 +15,16 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@bespunky/angular-timeline": ["libs/angular-timeline/index.ts"]
+      "@bespunky/angular-timeline": [
+        "libs/angular-timeline"
+      ],
+      "@bespunky/angular-timeline/*": [
+        "libs/angular-timeline/*"
+      ]
     }
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true
   },
   "exclude": ["node_modules", "tmp"]
 }
