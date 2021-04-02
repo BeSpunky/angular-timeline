@@ -1,1 +1,1 @@
-export * from './lib/angular-timeline.module';
+export * from '@bespunky/angular-timeline/operation';
