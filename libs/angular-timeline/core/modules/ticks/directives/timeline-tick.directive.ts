@@ -38,10 +38,10 @@ export class TimelineTickDirective extends TimelineTick
         this.itemsToRender = this.virtualize.itemsToRenderFeed(this);
     }
 
-    @Input() public set timelineTick            (value: string)                { this.id          .next(value); }
-    @Input() public set timelineTickDayFactor   (value: DayFactor)             { this.dayFactor   .next(value); }
-    @Input() public set timelineTickDatesBetween(value: DatesBetweenGenerator) { this.datesBetween.next(value); }
-    @Input() public set timelineTickMinZoom     (value: number)                { this.minZoom     .next(value); }
-    @Input() public set timelineTickMaxZoom     (value: number)                { this.maxZoom     .next(value); }
-    @Input() public set timelineTickLabel       (value: TickLabeler)           { this.label       .next(value); }
+    @Input() public set bsTimelineTick            (value: string)                { this.id          .next(value); }
+    @Input() public set bsTimelineTickDayFactor   (value: DayFactor)             { this.dayFactor   .next(value); }
+    @Input() public set bsTimelineTickDatesBetween(value: DatesBetweenGenerator) { this.datesBetween.next(value); }
+    @Input() public set bsTimelineTickMinZoom     (value: number)                { this.minZoom     .next(value); }
+    @Input() public set bsTimelineTickMaxZoom     (value: number)                { this.maxZoom     .next(value); }
+    @Input() public set bsTimelineTickLabel       (value: TickLabeler)           { this.label       .next(value); }
 }
