@@ -1,4 +1,4 @@
-export type TickLabeler           = (value: unknown) => string | number;
+export type TickLabeler           = (value: any) => string | number;
 
 export type DatesBetweenGenerator = (start: Date, end: Date) => Date[];
 

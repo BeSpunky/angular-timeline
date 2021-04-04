@@ -4,7 +4,8 @@ import { TimelineTicksModule } from './modules/ticks/timeline-ticks.module';
 import { TimelineDirective   } from './directives/timeline.directive';
 
 @NgModule({
-  declarations: [TimelineDirective],
-  exports     : [TimelineDirective]
+    imports     : [TimelineTicksModule],
+    declarations: [TimelineDirective],
+    exports     : [TimelineDirective, TimelineTicksModule],
 })
-export class TimelineModule { }
+export class TimelineModule {}

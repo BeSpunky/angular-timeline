@@ -10,8 +10,8 @@
       ],
       "parserOptions": {
         "project": [
-          "libs/angular-timeline/tsconfig.*?.json",
-          "libs\\angular-timeline\\.storybook\\tsconfig.json"
+          "apps/demo/tsconfig.*?.json",
+          "apps\\demo\\.storybook\\tsconfig.json"
         ]
       },
       "rules": {
@@ -19,7 +19,7 @@
           "error",
           {
             "type": "attribute",
-            "prefix": "bs",
+            "prefix": "app",
             "style": "camelCase"
           }
         ],
@@ -27,7 +27,7 @@
           "error",
           {
             "type": "element",
-            "prefix": "bs",
+            "prefix": "app",
             "style": "kebab-case"
           }
         ],
