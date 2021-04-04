@@ -1,83 +1,66 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "newProjectRoot": "projects",
-  "projects": {
-    "@bespunky/angular-timeline": {
-      "projectType": "library",
-      "root": "projects/bespunky/angular-timeline",
-      "sourceRoot": "projects/bespunky/angular-timeline",
-      "prefix": "bs",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/bespunky/angular-timeline/tsconfig.lib.json",
-            "project": "projects/bespunky/angular-timeline/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/bespunky/angular-timeline/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/bespunky/angular-timeline/test.ts",
-            "tsConfig": "projects/bespunky/angular-timeline/tsconfig.spec.json",
-            "karmaConfig": "projects/bespunky/angular-timeline/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/bespunky/angular-timeline/tsconfig.lib.json",
-              "projects/bespunky/angular-timeline/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
+  "cli": {
+    "defaultCollection": "@nrwl/angular"
+  },
+  "defaultProject": "official-site",
+  "schematics": {
+    "@nrwl/angular": {
+      "application": {
+        "linter": "eslint"
+      },
+      "library": {
+        "linter": "eslint"
+      },
+      "storybook-configuration": {
+        "linter": "eslint"
       }
     },
+    "@nrwl/angular:application": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "cypress",
+      "strict": true
+    },
+    "@nrwl/angular:library": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/angular:component": {
+      "style": "scss"
+    }
+  },
+  "projects": {
     "official-site": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/official-site",
-      "sourceRoot": "projects/official-site/src",
-      "prefix": "app",
+      "root": "apps/official-site",
+      "sourceRoot": "apps/official-site/src",
+      "prefix": "angular-timeline",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/official-site",
-            "index": "projects/official-site/src/index.html",
-            "main": "projects/official-site/src/main.ts",
-            "polyfills": "projects/official-site/src/polyfills.ts",
-            "tsConfig": "projects/official-site/tsconfig.app.json",
+            "outputPath": "dist/apps/official-site",
+            "index": "apps/official-site/src/index.html",
+            "main": "apps/official-site/src/main.ts",
+            "polyfills": "apps/official-site/src/polyfills.ts",
+            "tsConfig": "apps/official-site/tsconfig.app.json",
             "aot": true,
             "assets": [
-              "projects/official-site/src/favicon.ico",
-              "projects/official-site/src/assets"
+              "apps/official-site/src/favicon.ico",
+              "apps/official-site/src/assets"
             ],
-            "styles": [
-              "projects/official-site/src/styles.scss"
-            ],
+            "styles": ["apps/official-site/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "projects/official-site/src/environments/environment.ts",
-                  "with": "projects/official-site/src/environments/environment.prod.ts"
+                  "replace": "apps/official-site/src/environments/environment.ts",
+                  "with": "apps/official-site/src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -119,40 +102,35 @@
             "browserTarget": "official-site:build"
           }
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/official-site/src/test.ts",
-            "polyfills": "projects/official-site/src/polyfills.ts",
-            "tsConfig": "projects/official-site/tsconfig.spec.json",
-            "karmaConfig": "projects/official-site/karma.conf.js",
-            "assets": [
-              "projects/official-site/src/favicon.ico",
-              "projects/official-site/src/assets"
-            ],
-            "styles": [
-              "projects/official-site/src/styles.scss"
-            ],
-            "scripts": []
-          }
-        },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:eslint",
           "options": {
-            "tsConfig": [
-              "projects/official-site/tsconfig.app.json",
-              "projects/official-site/tsconfig.spec.json",
-              "projects/official-site/e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "apps/official-site/src/**/*.ts",
+              "apps/official-site/src/**/*.html"
             ]
           }
         },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/official-site"],
           "options": {
-            "protractorConfig": "projects/official-site/e2e/protractor.conf.js",
+            "jestConfig": "apps/official-site/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "official-site-e2e": {
+      "root": "apps/official-site-e2e",
+      "sourceRoot": "apps/official-site-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/official-site-e2e/cypress.json",
+            "tsConfig": "apps/official-site-e2e/tsconfig.e2e.json",
             "devServerTarget": "official-site:serve"
           },
           "configurations": {
@@ -160,44 +138,134 @@
               "devServerTarget": "official-site:serve:production"
             }
           }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["apps/official-site-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
+    "angular-timeline": {
+      "projectType": "library",
+      "root": "libs/angular-timeline",
+      "sourceRoot": "libs/angular-timeline",
+      "prefix": "bs",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/angular:package",
+          "options": {
+            "tsConfig": "libs/angular-timeline/tsconfig.lib.json",
+            "project": "libs/angular-timeline/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/angular-timeline/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/angular-timeline/**/*.ts",
+              "libs/angular-timeline/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/angular-timeline"],
+          "options": {
+            "jestConfig": "libs/angular-timeline/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "storybook": {
+          "builder": "@nrwl/storybook:storybook",
+          "options": {
+            "uiFramework": "@storybook/angular",
+            "port": 4400,
+            "config": {
+              "configFolder": "libs/angular-timeline/.storybook"
+            }
+          },
+          "configurations": {
+            "ci": {
+              "quiet": true
+            }
+          }
+        },
+        "build-storybook": {
+          "builder": "@nrwl/storybook:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "uiFramework": "@storybook/angular",
+            "outputPath": "dist/storybook/angular-timeline",
+            "config": {
+              "configFolder": "libs/angular-timeline/.storybook"
+            }
+          },
+          "configurations": {
+            "ci": {
+              "quiet": true
+            }
+          }
+        }
+      }
+    },
+    "angular-timeline-e2e": {
+      "root": "apps/angular-timeline-e2e",
+      "sourceRoot": "apps/angular-timeline-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/angular-timeline-e2e/cypress.json",
+            "tsConfig": "apps/angular-timeline-e2e/tsconfig.e2e.json",
+            "devServerTarget": "angular-timeline:storybook"
+          },
+          "configurations": {
+            "ci": {
+              "devServerTarget": "angular-timeline:storybook:ci"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["apps/angular-timeline-e2e/**/*.{js,ts}"]
+          }
         }
       }
     },
     "demo": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/demo",
-      "sourceRoot": "projects/demo/src",
+      "root": "apps/demo",
+      "sourceRoot": "apps/demo/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/demo",
-            "index": "projects/demo/src/index.html",
-            "main": "projects/demo/src/main.ts",
-            "polyfills": "projects/demo/src/polyfills.ts",
-            "tsConfig": "projects/demo/tsconfig.app.json",
+            "outputPath": "dist/apps/demo",
+            "index": "apps/demo/src/index.html",
+            "main": "apps/demo/src/main.ts",
+            "polyfills": "apps/demo/src/polyfills.ts",
+            "tsConfig": "apps/demo/tsconfig.app.json",
             "aot": true,
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets"
-            ],
-            "styles": [
-              "projects/demo/src/styles.scss"
-            ],
+            "assets": ["apps/demo/src/favicon.ico", "apps/demo/src/assets"],
+            "styles": ["apps/demo/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "projects/demo/src/environments/environment.ts",
-                  "with": "projects/demo/src/environments/environment.prod.ts"
+                  "replace": "apps/demo/src/environments/environment.ts",
+                  "with": "apps/demo/src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -239,40 +307,66 @@
             "browserTarget": "demo:build"
           }
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/demo/src/test.ts",
-            "polyfills": "projects/demo/src/polyfills.ts",
-            "tsConfig": "projects/demo/tsconfig.spec.json",
-            "karmaConfig": "projects/demo/karma.conf.js",
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets"
-            ],
-            "styles": [
-              "projects/demo/src/styles.scss"
-            ],
-            "scripts": []
-          }
-        },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:eslint",
           "options": {
-            "tsConfig": [
-              "projects/demo/tsconfig.app.json",
-              "projects/demo/tsconfig.spec.json",
-              "projects/demo/e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "apps/demo/src/**/*.ts",
+              "apps/demo/src/**/*.html"
             ]
           }
         },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/demo"],
           "options": {
-            "protractorConfig": "projects/demo/e2e/protractor.conf.js",
+            "jestConfig": "apps/demo/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "storybook": {
+          "builder": "@nrwl/storybook:storybook",
+          "options": {
+            "uiFramework": "@storybook/angular",
+            "port": 4400,
+            "config": {
+              "configFolder": "apps/demo/.storybook"
+            }
+          },
+          "configurations": {
+            "ci": {
+              "quiet": true
+            }
+          }
+        },
+        "build-storybook": {
+          "builder": "@nrwl/storybook:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "uiFramework": "@storybook/angular",
+            "outputPath": "dist/storybook/demo",
+            "config": {
+              "configFolder": "apps/demo/.storybook"
+            }
+          },
+          "configurations": {
+            "ci": {
+              "quiet": true
+            }
+          }
+        }
+      }
+    },
+    "demo-e2e": {
+      "root": "apps/demo-e2e",
+      "sourceRoot": "apps/demo-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/demo-e2e/cypress.json",
+            "tsConfig": "apps/demo-e2e/tsconfig.e2e.json",
             "devServerTarget": "demo:serve"
           },
           "configurations": {
@@ -280,9 +374,14 @@
               "devServerTarget": "demo:serve:production"
             }
           }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["apps/demo-e2e/**/*.{js,ts}"]
+          }
         }
       }
     }
-  },
-  "defaultProject": "@bespunky/angular-timeline"
+  }
 }
