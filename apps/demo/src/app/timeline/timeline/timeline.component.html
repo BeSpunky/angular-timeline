@@ -1,4 +1,14 @@
-<svg bsTimeline class="timeline" height="50vh" width="100vw" [zoom]="50" #timeline="timeline" (mousemove)="ddd($event)">
+<svg 
+     #timeline="timeline"
+     bsTimeline
+     class="timeline"
+     height="50vh"
+     width="100vw"
+     [zoom]="zoom || 1"
+     [baseTickSize]="baseTickSize || 1"
+     [position]="date || 0"
+     (mousemove)="ddd($event)"
+>
     <g *bsTimelineTick="'year'; minZoom: -100; maxZoom: 160; label: label.years; dayFactor: dayFactors.daysInYear; datesBetween: datesBetween.years; let screenPosition = screenPosition; let label = label">
         <line [attr.x1]="screenPosition | async" y1="0"
               [attr.x2]="screenPosition | async" y2="800"
@@ -40,16 +50,16 @@
     </g>
 
     <g>
-        <line [attr.x1]="timeline.state.viewBounds.value.screenCenterX" y1="0"
-              [attr.x2]="timeline.state.viewBounds.value.screenCenterX" y2="700"
+        <line [attr.x1]="(timeline.camera.viewBounds | async)?.screenCenterX" y1="0"
+              [attr.x2]="(timeline.camera.viewBounds | async)?.screenCenterX" y2="700"
               stroke-width="3" stroke="purple"></line>
 
-        <text [attr.x]="timeline.state.viewBounds.value.screenCenterX" y="20" dx="5" font-size="20">{{timeline.currentDate | async}}</text>
+        <text [attr.x]="(timeline.camera.viewBounds | async)?.screenCenterX" y="20" dx="5" font-size="20">{{timeline.currentDate | async}}</text>
     </g>
 </svg>
 
 <div style="text-align: center;">
-    Zoom      : {{ timeline.state.zoom.value }}<br/>
-    ViewCenter: {{ timeline.state.viewCenter.value }}<br/>
+    Zoom      : {{ timeline.camera.zoomLevel.value }}<br/>
+    ViewCenter: {{ timeline.camera.viewCenter.value }}<br/>
     Mouse     : {{x}}, {{y}}
 </div>
