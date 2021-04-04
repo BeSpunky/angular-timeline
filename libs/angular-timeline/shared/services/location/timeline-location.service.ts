@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
-import { ViewBounds                                   } from '@bespunky/angular-timeline/models';
-import { MillisecondsInADay, YearZeroJanuaryFirstInMs } from '../../tools/date-consts';
-import { daysSinceYearZero                            } from '../../tools/date-functions';
+import { ViewBounds                                                             } from '@bespunky/angular-timeline/abstraction';
+import { MillisecondsInADay, YearZeroJanuaryFirstInMs, MinDateInMs, MaxDateInMs } from '../../tools/date-consts';
+import { daysSinceYearZero                                                      } from '../../tools/date-functions';
 
 /**
  * Provides methods for orientation on the timeline.
@@ -26,7 +26,12 @@ export class TimelineLocationService
      */
     public positionToDate(dayWidth: number, position: number): Date
     {
-        return new Date(position * MillisecondsInADay / dayWidth + YearZeroJanuaryFirstInMs);
+        let positionInMs = position * MillisecondsInADay / dayWidth + YearZeroJanuaryFirstInMs;
+
+        if      (positionInMs > MaxDateInMs) positionInMs = MaxDateInMs;
+        else if (positionInMs < MinDateInMs) positionInMs = MinDateInMs;
+
+        return new Date(positionInMs);
     }
 
     /**
