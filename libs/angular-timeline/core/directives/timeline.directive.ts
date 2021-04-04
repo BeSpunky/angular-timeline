@@ -1,16 +1,19 @@
 import { combineLatest, Observable                                                      } from 'rxjs';
 import { filter, map, startWith, takeUntil                                              } from 'rxjs/operators';
 import { AfterViewInit, ChangeDetectorRef, ContentChildren, Directive, Input, QueryList } from '@angular/core';
-import { Destroyable                                                                    } from '@bespunky/angular-zen/core';
 
-import { TimelineState, TimelineStateProvider                                                    } from '@bespunky/angular-timeline/state';
-import { TimelineCamera, TimelineCameraProvider, TimelineControl, TimelineControlProvider        } from '@bespunky/angular-timeline/control';
-import { TimelineRenderer, TimelineRendererProvider                                              } from '@bespunky/angular-timeline/render';
-import { TimelineTick, TimelineTickDirective, TimelineTickRenderer, TimelineTickRendererProvider } from '@bespunky/angular-timeline/ticks';
-import { TimelineLocationService                                                                 } from '@bespunky/angular-timeline/shared';
+import { Timeline, TimelineConfig, TimelineControl, TimelineCamera, TimelineRenderer } from '@bespunky/angular-timeline/abstraction';
+import { TimelineTick, TimelineTickRenderer                                          } from '@bespunky/angular-timeline/abstraction/ticks';
+import { TimelineLocationService                                                     } from '@bespunky/angular-timeline/shared';
+import { TimelineTickDirective                                                       } from '../modules/ticks/directives/timeline-tick.directive';
+import { TimelineTickRendererProvider                                                } from '../modules/ticks/services/renderer/timeline-tick-renderer.provider';
+import { TimelineConfigProvider                                                      } from '../services/config/timeline-config.provider';
+import { TimelineCameraProvider                                                      } from '../services/camera/timeline-camera.provider';
+import { TimelineControlProvider                                                     } from '../services/control/timeline-control.provider';
+import { TimelineRendererProvider                                                    } from '../services/renderer/timeline-renderer.provider';
 
 const providers = [
-    TimelineStateProvider,
+    TimelineConfigProvider,
     TimelineCameraProvider,
     TimelineControlProvider,
     TimelineRendererProvider,
@@ -30,7 +33,7 @@ const providers = [
     exportAs : 'timeline',
     providers: providers,
 })
-export class TimelineDirective extends Destroyable implements AfterViewInit
+export class TimelineDirective extends Timeline implements AfterViewInit
 {
     @ContentChildren(TimelineTickDirective) private ticks!: QueryList<TimelineTick>;
     
@@ -46,18 +49,18 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
      * @param {TimelineTickRenderer} tickRenderer
      */
     constructor(
-        private changes     : ChangeDetectorRef,
-        public  state       : TimelineState,
-        private control     : TimelineControl,
-        private camera      : TimelineCamera,
-        private location    : TimelineLocationService,
-        private renderer    : TimelineRenderer,
-        private tickRenderer: TimelineTickRenderer
+        public  readonly config      : TimelineConfig,
+        public  readonly camera      : TimelineCamera,
+        private readonly control     : TimelineControl,
+        private readonly location    : TimelineLocationService,
+        private readonly renderer    : TimelineRenderer,
+        private readonly tickRenderer: TimelineTickRenderer,
+        private readonly changes     : ChangeDetectorRef
     )
     {
         super();
 
-        this.currentDate = combineLatest([this.state.dayWidth, this.state.viewCenter]).pipe(
+        this.currentDate = combineLatest([this.camera.dayWidth, this.camera.viewCenter]).pipe(
             map(([dayWidth, viewCenter]) => this.location.positionToDate(dayWidth, viewCenter))
         );
     }
@@ -65,8 +68,6 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     ngAfterViewInit()
     {
         this.observeTicks();
-
-        this.camera.moveTo(new Date());
 
         this.changes.detectChanges();
     }
@@ -98,36 +99,21 @@ export class TimelineDirective extends Destroyable implements AfterViewInit
     }
 
     /**
-     * Sets the width of the the day level tick. All tick width and position calculations are based on this size.
-     * Default is 1. A larger size means the initial size of your ticks will be larger.    
-     */
-    @Input() public set baseTickSize(value: number)
-    {
-        this.state.baseTickSize.next(value);
-    }
-
-    @Input() public set viewCenter(value: number)
-    {
-        this.state.viewCenter.next(value);
-    }
-
-    public get viewCenter(): number
-    {
-        return this.state.viewCenter.value;
-    }
-
-    /**
      * The level of zoom to apply to when rendering the timeline. Default is 1.
      * A larger number means zooming-in; A smaller number means zooming-out.
      */
     @Input() public set zoom(value: number)
     {
-        this.state.zoom.next(value);
+        this.camera.setZoom(value);
     }
 
-    /** Activates or deactivates zoom on wheel events. Default is `true`. */
-    @Input() public set zoomOnWheel(active: boolean)
+    @Input() public set position(dateOrPosition: number | Date)
     {
-        this.control.zoomOnWheel.next(active);
+        this.camera.moveTo(dateOrPosition);
+    }
+
+    @Input() public set baseTickSize(value: number)
+    {
+        this.config.baseTickSize.next(value);
     }
 }

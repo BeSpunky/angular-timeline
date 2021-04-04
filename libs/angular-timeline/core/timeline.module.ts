@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 
-import { TimelineDirective } from './directives/timeline.directive';
+import { TimelineTicksModule } from './modules/ticks/timeline-ticks.module';
+import { TimelineDirective   } from './directives/timeline.directive';
 
 @NgModule({
   declarations: [TimelineDirective],
