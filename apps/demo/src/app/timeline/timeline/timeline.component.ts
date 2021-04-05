@@ -15,9 +15,16 @@ export class TimelineComponent
     x = 0;
     y = 0;
 
-    @Input() public date?        : Date;
-    @Input() public zoom?        : number;
-    @Input() public baseTickSize?: number;
+    @Input() public date                : Date = new Date();
+    @Input() public zoom                       = 0;
+    @Input() public baseTickSize               = 1;
+    @Input() public moveAmount                 = 1;
+    @Input() public moveOnKeyboard             = true;
+    @Input() public moveOnWheel                = true;
+    @Input() public virtualizationBuffer       = 0.5;
+    @Input() public zoomDeltaFactor            = 1.06;
+    @Input() public zoomOnKeyboard             = true;
+    @Input() public zoomOnWheel                = true;
 
     public readonly dayFactors: { [scale: string]: DayFactor } = {
         daysInYear  : getDaysInYear,
