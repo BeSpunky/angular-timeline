@@ -116,4 +116,39 @@ export class TimelineDirective extends Timeline implements AfterViewInit
     {
         this.config.baseTickSize.next(value);
     }
+
+    @Input() public set moveAmount(value: number)
+    {
+        this.config.moveAmount.next(value);
+    }
+
+    @Input() public set moveOnKeyboard(value: boolean)
+    {
+        this.config.moveOnKeyboard.next(value);
+    }
+
+    @Input() public set moveOnWheel(value: boolean)
+    {
+        this.config.moveOnWheel.next(value);
+    }
+
+    @Input() public set virtualizationBuffer(value: number)
+    {
+        this.config.virtualizationBuffer.next(value);
+    }
+
+    @Input() public set zoomDeltaFactor(value: number)
+    {
+        this.config.zoomDeltaFactor.next(value);
+    }
+
+    @Input() public set zoomOnKeyboard(value: boolean)
+    {
+        this.config.zoomOnKeyboard.next(value);
+    }
+
+    @Input() public set zoomOnWheel(value: boolean)
+    {
+        this.config.zoomOnWheel.next(value);
+    }
 }
